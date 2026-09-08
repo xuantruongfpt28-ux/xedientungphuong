@@ -21,14 +21,17 @@ import {
   Alert,
 } from 'antd';
 import {
+  InboxOutlined,
   SwapOutlined,
   PlusOutlined,
   ReloadOutlined,
+  HistoryOutlined,
   ShopOutlined,
   CarOutlined,
   CheckCircleOutlined,
   FileExcelOutlined,
   DownloadOutlined,
+  UploadOutlined,
   DeleteOutlined,
   BarcodeOutlined,
   CheckSquareOutlined,
@@ -54,6 +57,20 @@ export interface VehicleStockItem {
   status: 'in_stock' | 'sold' | 'transferring';
   imported_at?: string;
   updated_at?: string;
+}
+
+interface InventoryLogItem {
+  id?: number;
+  type: 'import' | 'transfer' | 'sale' | 'delete';
+  brand: string;
+  model: string;
+  color: string;
+  quantity: number;
+  from_branch?: string;
+  to_branch?: string;
+  note?: string;
+  created_by?: string;
+  created_at?: string;
 }
 
 interface ExcelVehicleRow {
@@ -88,6 +105,7 @@ const normalizeBranchName = (rawBranch?: string): string => {
 
 export const InventoryManagement = ({ currentUser, customers = [] }: InventoryManagementProps) => {
   const [vehicleList, setVehicleList] = useState<VehicleStockItem[]>([]);
+  const [logList, setLogList] = useState<InventoryLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
@@ -124,6 +142,21 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           branch: normalizeBranchName(item.branch),
         }));
         setVehicleList(normalizedInv);
+      }
+
+      const { data: logData, error: logError } = await supabase
+        .from('InventoryLog')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (!logError && logData) {
+        const normalizedLogs = logData.map((log) => ({
+          ...log,
+          from_branch: log.from_branch ? normalizeBranchName(log.from_branch) : undefined,
+          to_branch: log.to_branch ? normalizeBranchName(log.to_branch) : undefined,
+        }));
+        setLogList(normalizedLogs);
       }
     } catch (err) {
       console.error(err);
@@ -912,7 +945,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       key: 'model',
                       render: (_, record) => (
                         <Space direction="vertical" size={0}>
-                          <Text strong>{record.brand} {record.model}</Text>
+                          <Text bold>{record.brand} {record.model}</Text>
                         </Space>
                       ),
                     },
