@@ -400,7 +400,7 @@ const executePrintContract = (customer: Customer) => {
             </tr>
           </tbody>
         </table>
-
+        * Phụ kiện theo xe: Bộ sạc
         <!-- MỤC LƯU Ý -->
         <div style="line-height: 1.4; margin-top: 10px;">
           <div class="bold" style="font-size: 12pt; text-decoration: underline; margin-bottom: 6px;">* LƯU Ý :</div>
