@@ -96,11 +96,9 @@ export interface SystemAccount {
 }
 
 const DEFAULT_FIXED_ACCOUNTS: SystemAccount[] = [
-  { username: 'admin', password: '123456', fullName: 'Ban Quản Trị (Admin)', branch: 'Chợ Mới', role: 'admin' },
-  { username: 'chomoi', password: '123456', fullName: 'Chi Nhánh Chợ Mới', branch: 'Chợ Mới', role: 'staff' },
-  { username: 'lapvo', password: '123456', fullName: 'Chi Nhánh Lấp Vò', branch: 'Lấp Vò', role: 'staff' },
-  { username: 'myluong3', password: '123456', fullName: 'Chi Nhánh Mỹ Luông 3', branch: 'Mỹ Luông 3', role: 'staff' },
-  { username: 'myluong4', password: '123456', fullName: 'Chi Nhánh Mỹ Luông 4', branch: 'Mỹ Luông 4', role: 'staff' },
+  { username: 'admin', password: '123456', fullName: 'Ban Quản Trị (Admin)', branch: 'Kiên Giang', role: 'admin' },
+  { username: 'chinhanh1', password: '123456', fullName: 'Chi nhánh 1', branch: 'Kiên Giang', role: 'staff' },
+  { username: 'chinhanh2', password: '123456', fullName: 'Chi nhánh 2', branch: 'Kiên Giang', role: 'staff' },
 ];
 
 export const extractVehicleInfo = (item: Customer) => {
@@ -1137,7 +1135,7 @@ export default function App() {
               <ShopOutlined />
             </div>
             <Title level={3} style={{ margin: 0, color: '#1f1f1f', fontWeight: 700 }}>
-              XE ĐIỆN THANH TƯƠI
+              XE ĐIỆN TÙNG PHƯỢNG
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
               Hệ thống Quản lý Bán xe & In Hợp đồng
@@ -1327,7 +1325,7 @@ export default function App() {
         >
           <div>
             <Title level={3} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '18px' : '22px', color: '#1f1f1f' }}>
-              XE ĐIỆN THANH TƯƠI
+              XE ĐIỆN TÙNG PHƯỢNG
             </Title>
             <Space wrap style={{ marginTop: 4 }}>
               <Text type="secondary" style={{ fontSize: '13px' }}>
