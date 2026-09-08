@@ -53,7 +53,8 @@ dayjs.extend(customParseFormat);
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedientungphuong.vercel.app/api';
+// Tự động lấy domain hiện tại nếu không khai báo VITE_API_URL
+const BASE_API_URL = import.meta.env.VITE_API_URL || `${window.location.origin}/api`;
 
 export interface Customer {
   id?: number;
@@ -669,9 +670,25 @@ export default function App() {
 
   const handleFormSubmit = async (values: any) => {
     setSubmitting(true);
+
+    // Map dữ liệu để phù hợp với cả tên cột Tiếng Việt lẫn Tiếng Anh trên Backend
+    const payload = {
+      ...values,
+      ho_ten: values.fullName,
+      dien_thoai: values.phone,
+      dia_chi: values.address,
+      mau: values.color,
+      gia_xe: values.price,
+      nhan_vien: values.staffName,
+      chi_nhanh: values.branchName,
+      so_khung: values.frameNumber,
+      so_pin: values.batteryNumber,
+      vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
+    };
+
     try {
       if (editingCustomer && editingCustomer.id) {
-        await axios.put(`${BASE_API_URL}/customers/${editingCustomer.id}`, values);
+        await axios.put(`${BASE_API_URL}/customers/${editingCustomer.id}`, payload);
         message.success('Cập nhật thành công!');
 
         await logActivity({
@@ -679,7 +696,7 @@ export default function App() {
           description: `Sửa thông tin khách hàng: [${values.fullName}] - SĐT: [${values.phone}]`,
         });
       } else {
-        await axios.post(`${BASE_API_URL}/customers`, values);
+        await axios.post(`${BASE_API_URL}/customers`, payload);
         message.success('Thêm mới thành công!');
 
         const frameNum = (values.frameNumber || '').trim();
@@ -725,8 +742,10 @@ export default function App() {
       setIsModalOpen(false);
       form.resetFields();
       fetchCustomers();
-    } catch {
-      message.error('Lưu dữ liệu thất bại!');
+    } catch (error: any) {
+      console.error('Lỗi khi submit form:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Lưu dữ liệu thất bại!';
+      message.error(`Lỗi: ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
@@ -1396,7 +1415,7 @@ export default function App() {
               key: 'fullName',
             },
             {
-              title: 'MẬT KHẨU',
+              title: 'MẬT KHỦA',
               dataIndex: 'password',
               key: 'password',
               render: (pwd) => <Text copyable={{ text: pwd }}>••••••</Text>,
