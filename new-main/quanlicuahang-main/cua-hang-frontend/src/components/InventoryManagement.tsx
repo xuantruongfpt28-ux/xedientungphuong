@@ -21,17 +21,14 @@ import {
   Alert,
 } from 'antd';
 import {
-  InboxOutlined,
   SwapOutlined,
   PlusOutlined,
   ReloadOutlined,
-  HistoryOutlined,
   ShopOutlined,
   CarOutlined,
   CheckCircleOutlined,
   FileExcelOutlined,
   DownloadOutlined,
-  UploadOutlined,
   DeleteOutlined,
   BarcodeOutlined,
   CheckSquareOutlined,
@@ -59,20 +56,6 @@ export interface VehicleStockItem {
   updated_at?: string;
 }
 
-interface InventoryLogItem {
-  id?: number;
-  type: 'import' | 'transfer' | 'sale' | 'delete';
-  brand: string;
-  model: string;
-  color: string;
-  quantity: number;
-  from_branch?: string;
-  to_branch?: string;
-  note?: string;
-  created_by?: string;
-  created_at?: string;
-}
-
 interface ExcelVehicleRow {
   branch: string;
   brand: string;
@@ -93,13 +76,22 @@ const cleanFrameStr = (str?: string): string => {
   return str.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().trim();
 };
 
+// Hàm chuẩn hóa tên chi nhánh về Chi nhánh 1 hoặc Chi nhánh 2
+const normalizeBranchName = (rawBranch?: string): string => {
+  if (!rawBranch) return 'Chi nhánh 1';
+  const str = rawBranch.trim().toLowerCase();
+  if (str.includes('2') || str.includes('cn2') || str.includes('chi nhánh 2')) {
+    return 'Chi nhánh 2';
+  }
+  return 'Chi nhánh 1';
+};
+
 export const InventoryManagement = ({ currentUser, customers = [] }: InventoryManagementProps) => {
   const [vehicleList, setVehicleList] = useState<VehicleStockItem[]>([]);
-  const [logList, setLogList] = useState<InventoryLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  // Mặc định chọn 'all' (Tất cả chi nhánh) để mọi tài khoản đều tra cứu được toàn hệ thống
+  // Mặc định chọn 'all' (Tất cả chi nhánh)
   const [filterBranch, setFilterBranch] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('in_stock');
   const [searchText, setSearchText] = useState('');
@@ -125,14 +117,14 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         .from('Inventory')
         .select('*')
         .order('id', { ascending: false });
-      if (!invError && invData) setVehicleList(invData);
-
-      const { data: logData, error: logError } = await supabase
-        .from('InventoryLog')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (!logError && logData) setLogList(logData);
+      
+      if (!invError && invData) {
+        const normalizedInv = invData.map((item) => ({
+          ...item,
+          branch: normalizeBranchName(item.branch),
+        }));
+        setVehicleList(normalizedInv);
+      }
     } catch (err) {
       console.error(err);
       message.error('Không thể tải danh sách xe tồn kho!');
@@ -216,15 +208,14 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
               model: m.item.model,
               color: m.item.color,
               quantity: 1,
-              from_branch: m.item.branch,
+              from_branch: normalizeBranchName(m.item.branch),
               note: `Đồng bộ chính xác bán xe SK: ${m.item.frame_number} cho khách ${m.customer.fullName || m.customer.ho_ten || 'Khách mua'}`,
               created_by: 'Hệ thống tự động',
             },
           ]);
         }
 
-        // Ghi log hoạt động hệ thống
-        const matchedFrames = matchedToSold.map(m => m.item.frame_number).join(', ');
+        const matchedFrames = matchedToSold.map((m) => m.item.frame_number).join(', ');
         await logActivity({
           actionType: 'SALE',
           description: `Đồng bộ đơn bán: Cập nhật ${matchedToSold.length} xe sang ĐÃ BÁN [${matchedFrames}]`,
@@ -268,7 +259,6 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
       if (error) throw error;
 
-      // Ghi log thao tác
       await logActivity({
         actionType: 'STATUS_CHANGE',
         description: `Đổi trạng thái xe [${record.frame_number}] (${record.brand} ${record.model}) sang: ${newStatus === 'in_stock' ? 'TRONG KHO' : 'ĐÃ BÁN'}`,
@@ -294,13 +284,12 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           model: item.model,
           color: item.color,
           quantity: 1,
-          from_branch: item.branch,
+          from_branch: normalizeBranchName(item.branch),
           note: `Xóa xe số khung: ${item.frame_number}`,
           created_by: currentUser.fullName,
         },
       ]);
 
-      // Ghi log xóa xe
       await logActivity({
         actionType: 'DELETE',
         description: `Xóa xe số khung [${item.frame_number}] (${item.brand} ${item.model}) tại chi nhánh [${item.branch}]`,
@@ -333,14 +322,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             model: item.model,
             color: item.color,
             quantity: 1,
-            from_branch: item.branch,
+            from_branch: normalizeBranchName(item.branch),
             note: `Xóa hàng loạt xe SK: ${item.frame_number}`,
             created_by: currentUser.fullName,
           },
         ]);
       }
 
-      // Ghi log xóa hàng loạt
       const frameListStr = selectedVehicles.map((v) => v.frame_number).join(', ');
       await logActivity({
         actionType: 'DELETE',
@@ -368,7 +356,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
     try {
       for (const item of selectedVehicles) {
-        const fromBranch = item.branch;
+        const fromBranch = normalizeBranchName(item.branch);
         if (fromBranch === toBranch) continue;
 
         await supabase
@@ -394,7 +382,6 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         ]);
       }
 
-      // Ghi log luân chuyển hàng loạt
       const transferredFrames = selectedVehicles.map((v) => v.frame_number).join(', ');
       await logActivity({
         actionType: 'TRANSFER',
@@ -419,7 +406,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleDownloadSampleExcel = () => {
     const sampleData = [
       {
-        'Chi Nhánh': 'Chợ Mới',
+        'Chi Nhánh': 'Chi nhánh 1',
         'Hãng Xe': 'Yadea',
         'Model Xe': 'I8',
         'Màu Sắc': 'Trắng Sữa',
@@ -428,30 +415,12 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         'Ghi Chú': 'Lô xe mới nhập',
       },
       {
-        'Chi Nhánh': 'Lấp Vò',
+        'Chi Nhánh': 'Chi nhánh 2',
         'Hãng Xe': 'Yadea',
         'Model Xe': 'OVA',
         'Màu Sắc': 'Vàng Cam Đất',
         'Số Khung': 'RL9Y5DGMHTFEU1002',
         'Số Acquy': '1008264-100926-002',
-        'Ghi Chú': 'Lô xe mới nhập',
-      },
-      {
-        'Chi Nhánh': 'Mỹ Luông 3',
-        'Hãng Xe': 'Dkbike',
-        'Model Xe': 'Xzone',
-        'Màu Sắc': 'Xám Bóng',
-        'Số Khung': 'RL9Y5DGMHTFEU1003',
-        'Số Acquy': '1008264-100926-003',
-        'Ghi Chú': 'Lô xe mới nhập',
-      },
-      {
-        'Chi Nhánh': 'Mỹ Luông 4',
-        'Hãng Xe': 'Vinfast',
-        'Model Xe': 'Feliz 2',
-        'Màu Sắc': 'Đen',
-        'Số Khung': 'RL9Y5DGMHTFEU1004',
-        'Số Acquy': '1008264-100926-004',
         'Ghi Chú': 'Lô xe mới nhập',
       },
     ];
@@ -479,8 +448,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
         const formattedRows: ExcelVehicleRow[] = rawJson
           .map((row: any) => {
-            let branchName = String(row['Chi Nhánh'] || row['chi_nhanh'] || currentUser.branch).trim();
-            if (branchName.toLowerCase() === 'mỹ luông') branchName = 'Mỹ Luông 3';
+            const rawBranch = String(row['Chi Nhánh'] || row['chi_nhanh'] || currentUser.branch).trim();
+            const branchName = normalizeBranchName(rawBranch);
 
             return {
               branch: branchName,
@@ -516,6 +485,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
     try {
       for (const row of excelPreviewData) {
+        const branchName = normalizeBranchName(row.branch);
+
         const { data: existing } = await supabase
           .from('Inventory')
           .select('id')
@@ -526,7 +497,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           await supabase
             .from('Inventory')
             .update({
-              branch: row.branch,
+              branch: branchName,
               brand: row.brand,
               model: row.model,
               color: row.color,
@@ -540,7 +511,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             {
               frame_number: row.frame_number,
               battery_number: row.battery_number,
-              branch: row.branch,
+              branch: branchName,
               brand: row.brand,
               model: row.model,
               color: row.color,
@@ -556,14 +527,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             model: row.model,
             color: row.color,
             quantity: 1,
-            to_branch: row.branch,
+            to_branch: branchName,
             note: `Nhập xe SK: ${row.frame_number} (${row.note})`,
             created_by: currentUser.fullName,
           },
         ]);
       }
 
-      // Ghi log nhập lô Excel
       await logActivity({
         actionType: 'IMPORT',
         description: `Nhập kho bằng Excel: Nạp thành công ${excelPreviewData.length} xe vào hệ thống`,
@@ -586,6 +556,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleImportSubmit = async (values: any) => {
     setSubmitting(true);
     const { branch, brand, model, color, frame_number, battery_number, note } = values;
+    const targetBranch = normalizeBranchName(branch);
 
     try {
       const { data: existing } = await supabase
@@ -604,7 +575,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         {
           frame_number: frame_number.trim(),
           battery_number: (battery_number || '').trim(),
-          branch,
+          branch: targetBranch,
           brand: brand.trim(),
           model: model.trim(),
           color: color.trim(),
@@ -619,20 +590,19 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           model: model.trim(),
           color: color.trim(),
           quantity: 1,
-          to_branch: branch,
+          to_branch: targetBranch,
           note: `Nhập xe SK: ${frame_number} - ${note || 'Nhập thủ công'}`,
           created_by: currentUser.fullName,
         },
       ]);
 
-      // Ghi log nhập xe thủ công
       await logActivity({
         actionType: 'IMPORT',
-        description: `Nhập xe mới thủ công: [${frame_number}] (${brand} ${model}, màu ${color}) vào chi nhánh [${branch}]`,
+        description: `Nhập xe mới thủ công: [${frame_number}] (${brand} ${model}, màu ${color}) vào chi nhánh [${targetBranch}]`,
         user: currentUser,
       });
 
-      message.success(`Đã thêm xe ${brand} ${model} (SK: ${frame_number}) vào ${branch}!`);
+      message.success(`Đã thêm xe ${brand} ${model} (SK: ${frame_number}) vào ${targetBranch}!`);
       setIsImportModalOpen(false);
       importForm.resetFields();
       await fetchData();
@@ -646,6 +616,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleTransferSubmit = async (values: any) => {
     setSubmitting(true);
     const { frame_number, toBranch, note } = values;
+    const targetBranch = normalizeBranchName(toBranch);
 
     try {
       const { data: item } = await supabase
@@ -660,18 +631,18 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         return;
       }
 
-      if (item.branch === toBranch) {
+      const fromBranch = normalizeBranchName(item.branch);
+
+      if (fromBranch === targetBranch) {
         message.warning('Chi nhánh nhận phải khác chi nhánh hiện tại của xe!');
         setSubmitting(false);
         return;
       }
 
-      const fromBranch = item.branch;
-
       await supabase
         .from('Inventory')
         .update({
-          branch: toBranch,
+          branch: targetBranch,
           updated_at: new Date().toISOString(),
         })
         .eq('id', item.id);
@@ -684,20 +655,19 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           color: item.color,
           quantity: 1,
           from_branch: fromBranch,
-          to_branch: toBranch,
+          to_branch: targetBranch,
           note: `Chuyển xe SK: ${frame_number} (${note || 'Điều tiết kho'})`,
           created_by: currentUser.fullName,
         },
       ]);
 
-      // Ghi log chuyển 1 xe
       await logActivity({
         actionType: 'TRANSFER',
-        description: `Luân chuyển xe [${frame_number}] (${item.brand} ${item.model}) từ [${fromBranch}] sang [${toBranch}]`,
+        description: `Luân chuyển xe [${frame_number}] (${item.brand} ${item.model}) từ [${fromBranch}] sang [${targetBranch}]`,
         user: currentUser,
       });
 
-      message.success(`Đã chuyển xe số khung [${frame_number}] từ ${fromBranch} sang ${toBranch}!`);
+      message.success(`Đã chuyển xe số khung [${frame_number}] từ ${fromBranch} sang ${targetBranch}!`);
       setIsTransferModalOpen(false);
       transferForm.resetFields();
       fetchData();
@@ -710,7 +680,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
   const filteredVehicles = useMemo(() => {
     return vehicleList.filter((item) => {
-      const matchBranch = filterBranch === 'all' ? true : item.branch === filterBranch;
+      const itemBranch = normalizeBranchName(item.branch);
+      const matchBranch = filterBranch === 'all' ? true : itemBranch === filterBranch;
       const matchStatus = filterStatus === 'all' ? true : item.status === filterStatus;
       const search = searchText.toLowerCase();
       const matchSearch =
@@ -719,17 +690,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         item.brand.toLowerCase().includes(search) ||
         item.model.toLowerCase().includes(search) ||
         item.color.toLowerCase().includes(search) ||
-        item.branch.toLowerCase().includes(search);
+        itemBranch.toLowerCase().includes(search);
       return matchBranch && matchStatus && matchSearch;
     });
   }, [vehicleList, filterBranch, filterStatus, searchText]);
 
   const inStockCount = vehicleList.filter((v) => v.status === 'in_stock').length;
   const soldCount = vehicleList.filter((v) => v.status === 'sold').length;
-
-  const availableInStockVehicles = useMemo(() => {
-    return vehicleList.filter((v) => v.status === 'in_stock');
-  }, [vehicleList]);
 
   const rowSelection = {
     selectedRowKeys,
@@ -767,7 +734,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           <Card bordered style={{ borderRadius: 8, backgroundColor: '#fff7e6', borderColor: '#ffd591' }}>
             <Statistic
               title={<span style={{ color: '#d46b08', fontWeight: 600 }}>Chi Nhánh Đang Quản Lý</span>}
-              value={4}
+              value={2}
               suffix="shop"
               prefix={<ShopOutlined style={{ color: '#fa8c16' }} />}
               valueStyle={{ color: '#fa8c16', fontWeight: 700 }}
@@ -796,10 +763,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       style={{ width: 180 }}
                       options={[
                         { label: '🏪 Tất cả chi nhánh', value: 'all' },
-                        { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                        { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                        { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                        { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
+                        { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                        { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
                       ]}
                     />
 
@@ -852,7 +817,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       icon={<PlusOutlined />}
                       onClick={() => {
                         importForm.resetFields();
-                        importForm.setFieldsValue({ branch: currentUser.branch });
+                        importForm.setFieldsValue({ branch: normalizeBranchName(currentUser.branch) });
                         setIsImportModalOpen(true);
                       }}
                     >
@@ -939,152 +904,80 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       title: 'SỐ ACQUY / PIN',
                       dataIndex: 'battery_number',
                       key: 'battery_number',
-                      render: (bat) => (bat ? <Text code style={{ color: '#389e0d', fontWeight: 600 }}>{bat}</Text> : <Text type="secondary">---</Text>),
+                      render: (pin) => pin ? <Text type="secondary">{pin}</Text> : <Text type="secondary" italic>--</Text>,
                       width: 160,
                     },
                     {
                       title: 'HÃNG & MODEL XE',
-                      key: 'vehicle',
-                      render: (_, r) => <strong>{r.brand} {r.model}</strong>,
-                      width: 170,
+                      key: 'model',
+                      render: (_, record) => (
+                        <Space direction="vertical" size={0}>
+                          <Text strong>{record.brand} {record.model}</Text>
+                        </Space>
+                      ),
                     },
                     {
                       title: 'MÀU SẮC',
                       dataIndex: 'color',
                       key: 'color',
-                      render: (c) => <Tag color="cyan">{c}</Tag>,
-                      width: 120,
+                      render: (color) => <Tag color="blue">{color}</Tag>,
+                      width: 130,
                     },
                     {
                       title: 'VỊ TRÍ CHI NHÁNH',
                       dataIndex: 'branch',
                       key: 'branch',
-                      render: (b) => <Tag color="blue" style={{ fontWeight: 600 }}>{b}</Tag>,
-                      width: 140,
+                      render: (b) => <Tag color="purple">{normalizeBranchName(b)}</Tag>,
+                      width: 150,
                     },
                     {
                       title: 'TRẠNG THÁI',
                       dataIndex: 'status',
                       key: 'status',
-                      align: 'center',
-                      render: (st, record) => (
-                        <Popconfirm
-                          title="Đổi trạng thái xe"
-                          description={`Chuyển xe [${record.frame_number}] sang: ${st === 'in_stock' ? 'ĐÃ BÁN' : 'TRONG KHO'}?`}
-                          onConfirm={() => handleToggleStatus(record)}
-                          okText="Đổi"
-                          cancelText="Hủy"
-                        >
-                          {st === 'in_stock' ? (
-                            <Tag color="green" style={{ fontWeight: 600, cursor: 'pointer' }}>
-                              Trong kho (Bấm để đổi)
-                            </Tag>
-                          ) : (
-                            <Tag color="default" style={{ cursor: 'pointer' }}>
-                              Đã bán (Bấm để đổi)
-                            </Tag>
-                          )}
-                        </Popconfirm>
+                      render: (st) => (
+                        st === 'in_stock' ? (
+                          <Tag color="success">Trong Kho</Tag>
+                        ) : st === 'sold' ? (
+                          <Tag color="default">Đã Bán</Tag>
+                        ) : (
+                          <Tag color="warning">Luân Chuyển</Tag>
+                        )
                       ),
-                      width: 150,
+                      width: 130,
                     },
                     {
                       title: 'NGÀY NHẬP',
                       dataIndex: 'imported_at',
                       key: 'imported_at',
-                      align: 'center',
-                      render: (dt) => (dt ? dayjs(dt).format('DD/MM/YYYY') : '---'),
-                      width: 120,
+                      render: (date) => date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '--',
+                      width: 150,
                     },
                     {
                       title: 'THAO TÁC',
                       key: 'action',
-                      align: 'center',
-                      width: 100,
                       render: (_, record) => (
-                        <Popconfirm
-                          title="Xác nhận xóa xe"
-                          description={`Bạn có chắc muốn xóa xe số khung [${record.frame_number}] khỏi kho?`}
-                          onConfirm={() => handleDeleteVehicle(record)}
-                          okText="Xóa"
-                          cancelText="Hủy"
-                          okButtonProps={{ danger: true }}
-                        >
-                          <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-                            Xóa
+                        <Space>
+                          <Button
+                            size="small"
+                            type={record.status === 'in_stock' ? 'default' : 'primary'}
+                            onClick={() => handleToggleStatus(record)}
+                          >
+                            {record.status === 'in_stock' ? 'Đổi: Đã Bán' : 'Đổi: Trong Kho'}
                           </Button>
-                        </Popconfirm>
+
+                          <Popconfirm
+                            title="Xác nhận xóa xe"
+                            description={`Bạn có chắc chắn muốn xóa xe số khung [${record.frame_number}]?`}
+                            onConfirm={() => handleDeleteVehicle(record)}
+                            okText="Xóa"
+                            cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Button size="small" danger icon={<DeleteOutlined />} />
+                          </Popconfirm>
+                        </Space>
                       ),
-                    },
-                  ]}
-                />
-              </Card>
-            ),
-          },
-          {
-            key: 'logs',
-            label: (
-              <span>
-                <HistoryOutlined /> Lịch Sử Nhập / Luân Chuyển / Bán Xe
-              </span>
-            ),
-            children: (
-              <Card size="small" style={{ borderRadius: 8 }}>
-                <Table<InventoryLogItem>
-                  dataSource={logList}
-                  rowKey="id"
-                  loading={loading}
-                  pagination={{ pageSize: 10 }}
-                  size="small"
-                  columns={[
-                    {
-                      title: 'THỜI GIAN',
-                      dataIndex: 'created_at',
-                      key: 'created_at',
-                      render: (d) => dayjs(d).format('DD/MM/YYYY HH:mm'),
-                      width: 140,
-                    },
-                    {
-                      title: 'LOẠI GIAO DỊCH',
-                      dataIndex: 'type',
-                      key: 'type',
-                      render: (t) => {
-                        if (t === 'import') return <Tag color="green">Nhập Kho</Tag>;
-                        if (t === 'transfer') return <Tag color="purple">Chuyển Shop</Tag>;
-                        if (t === 'delete') return <Tag color="red">Xóa Xe</Tag>;
-                        return <Tag color="orange">Bán Hàng</Tag>;
-                      },
-                      width: 120,
-                    },
-                    {
-                      title: 'THÔNG TIN XE',
-                      key: 'vehicle',
-                      render: (_, r) => <strong>{r.brand} {r.model} - Màu: {r.color}</strong>,
-                    },
-                    {
-                      title: 'TỪ CHI NHÁNH',
-                      dataIndex: 'from_branch',
-                      key: 'from_branch',
-                      render: (b) => (b ? <Tag color="red">{b}</Tag> : <Text type="secondary">NCC</Text>),
-                      width: 130,
-                    },
-                    {
-                      title: 'ĐẾN CHI NHÁNH',
-                      dataIndex: 'to_branch',
-                      key: 'to_branch',
-                      render: (b) => (b ? <Tag color="blue">{b}</Tag> : <Text type="secondary">Khách mua / Xóa</Text>),
-                      width: 130,
-                    },
-                    {
-                      title: 'NGƯỜI THỰC HIỆN',
-                      dataIndex: 'created_by',
-                      key: 'created_by',
-                      width: 140,
-                    },
-                    {
-                      title: 'GHI CHÚ / SỐ KHUNG',
-                      dataIndex: 'note',
-                      key: 'note',
+                      width: 170,
                     },
                   ]}
                 />
@@ -1094,215 +987,125 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         ]}
       />
 
-      {/* MODAL 1: PREVIEW EXCEL */}
+      {/* Modal Nhập xe thủ công */}
       <Modal
-        title={
-          <Space>
-            <FileExcelOutlined style={{ color: '#13c2c2' }} />
-            <span>Xác Nhận Lô Xe Nhập Từ Excel ({excelPreviewData.length} xe)</span>
-          </Space>
-        }
+        title="Nhập Xe Mới Thủ Công"
+        open={isImportModalOpen}
+        onCancel={() => setIsImportModalOpen(false)}
+        onOk={() => importForm.submit()}
+        confirmLoading={submitting}
+        okText="Lưu Vào Kho"
+        cancelText="Hủy"
+      >
+        <Form form={importForm} layout="vertical" onFinish={handleImportSubmit}>
+          <Form.Item name="branch" label="Chi Nhánh" rules={[{ required: true, message: 'Vui lòng chọn chi nhánh!' }]}>
+            <Select
+              options={[
+                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="brand" label="Hãng Xe" rules={[{ required: true, message: 'Nhập hãng xe!' }]}>
+            <Input placeholder="Ví dụ: Yadea, Vinfast, Dkbike..." />
+          </Form.Item>
+          <Form.Item name="model" label="Model Xe" rules={[{ required: true, message: 'Nhập model xe!' }]}>
+            <Input placeholder="Ví dụ: I8, Feliz, Xzone..." />
+          </Form.Item>
+          <Form.Item name="color" label="Màu Sắc" rules={[{ required: true, message: 'Nhập màu sắc!' }]}>
+            <Input placeholder="Ví dụ: Trắng, Đỏ, Xám bóng..." />
+          </Form.Item>
+          <Form.Item name="frame_number" label="Số Khung (VIN)" rules={[{ required: true, message: 'Nhập số khung!' }]}>
+            <Input placeholder="Nhập chính xác số khung xe..." />
+          </Form.Item>
+          <Form.Item name="battery_number" label="Số Acquy / Pin">
+            <Input placeholder="Nhập số seri pin/acquy (nếu có)..." />
+          </Form.Item>
+          <Form.Item name="note" label="Ghi Chú">
+            <Input.TextArea rows={2} placeholder="Ghi chú bổ sung..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal Chuyển 1 xe */}
+      <Modal
+        title="Chuyển 1 Xe Sang Chi Nhánh Khác"
+        open={isTransferModalOpen}
+        onCancel={() => setIsTransferModalOpen(false)}
+        onOk={() => transferForm.submit()}
+        confirmLoading={submitting}
+        okText="Chuyển Kho"
+        cancelText="Hủy"
+      >
+        <Form form={transferForm} layout="vertical" onFinish={handleTransferSubmit}>
+          <Form.Item name="frame_number" label="Số Khung Xe Cần Chuyển" rules={[{ required: true, message: 'Nhập số khung xe!' }]}>
+            <Input placeholder="Nhập số khung xe đang có trong kho..." />
+          </Form.Item>
+          <Form.Item name="toBranch" label="Chi Nhánh Nhận Xe" rules={[{ required: true, message: 'Chọn chi nhánh đích!' }]}>
+            <Select
+              options={[
+                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="note" label="Lý Do / Ghi Chú">
+            <Input.TextArea rows={2} placeholder="Lý do chuyển kho..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal Chuyển xe hàng loạt */}
+      <Modal
+        title={`Chuyển Kho Hàng Loạt (${selectedRowKeys.length} Xe)`}
+        open={isBatchTransferModalOpen}
+        onCancel={() => setIsBatchTransferModalOpen(false)}
+        onOk={() => batchTransferForm.submit()}
+        confirmLoading={submitting}
+        okText="Xác Nhận Chuyển Tất Cả"
+        cancelText="Hủy"
+      >
+        <Form form={batchTransferForm} layout="vertical" onFinish={handleBatchTransferSubmit}>
+          <Form.Item name="toBranch" label="Chi Nhánh Đích Nhận Xe" rules={[{ required: true, message: 'Vui lòng chọn chi nhánh đích!' }]}>
+            <Select
+              options={[
+                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="note" label="Ghi Chú Luân Chuyển">
+            <Input.TextArea rows={2} placeholder="Nhập ghi chú cho đợt chuyển lô này..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal Xem trước file Excel */}
+      <Modal
+        title={`Xác Nhận Nhập Lô Xe Tồn Kho Từ Excel (${excelPreviewData.length} chiếc)`}
         open={isExcelModalOpen}
         onCancel={() => setIsExcelModalOpen(false)}
-        footer={null}
+        onOk={handleConfirmImportExcel}
+        confirmLoading={submitting}
+        okText="Xác Nhận Nạp Kho"
+        cancelText="Hủy"
         width={900}
-        destroyOnClose
       >
         <Table<ExcelVehicleRow>
           dataSource={excelPreviewData}
-          rowKey={(r, idx) => `${r.frame_number}_${idx}`}
+          rowKey={(r) => r.frame_number}
           pagination={{ pageSize: 5 }}
           size="small"
-          bordered
           columns={[
-            { title: 'Số Khung', dataIndex: 'frame_number', render: (sk) => <Text code strong>{sk}</Text> },
-            { title: 'Số Acquy', dataIndex: 'battery_number' },
-            { title: 'Chi Nhánh Nhận', dataIndex: 'branch', render: (b) => <Tag color="blue">{b}</Tag> },
-            { title: 'Hãng & Model', render: (_, r) => `${r.brand} ${r.model}` },
-            { title: 'Màu Sắc', dataIndex: 'color', render: (c) => <Tag color="cyan">{c}</Tag> },
-            { title: 'Ghi Chú', dataIndex: 'note' },
+            { title: 'Số Khung', dataIndex: 'frame_number', key: 'frame_number' },
+            { title: 'Số Acquy / Pin', dataIndex: 'battery_number', key: 'battery_number' },
+            { title: 'Hãng', dataIndex: 'brand', key: 'brand' },
+            { title: 'Model', dataIndex: 'model', key: 'model' },
+            { title: 'Màu', dataIndex: 'color', key: 'color' },
+            { title: 'Chi Nhánh', dataIndex: 'branch', key: 'branch', render: (b) => <Tag color="purple">{normalizeBranchName(b)}</Tag> },
+            { title: 'Ghi Chú', dataIndex: 'note', key: 'note' },
           ]}
         />
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-          <Button onClick={() => setIsExcelModalOpen(false)}>Hủy</Button>
-          <Button type="primary" icon={<UploadOutlined />} loading={submitting} onClick={handleConfirmImportExcel} style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}>
-            Xác Nhận Nạp Vào Kho
-          </Button>
-        </div>
-      </Modal>
-
-      {/* MODAL 2: NHẬP THỦ CÔNG 1 XE */}
-      <Modal
-        title={
-          <Space>
-            <InboxOutlined style={{ color: '#52c41a' }} />
-            <span>Nhập Xe Mới Theo Số Khung</span>
-          </Space>
-        }
-        open={isImportModalOpen}
-        onCancel={() => setIsImportModalOpen(false)}
-        footer={null}
-        destroyOnClose
-        width={520}
-      >
-        <Form form={importForm} layout="vertical" onFinish={handleImportSubmit} style={{ marginTop: 16 }}>
-          <Form.Item name="branch" label="Chi nhánh nhập về" rules={[{ required: true, message: 'Chọn chi nhánh!' }]}>
-            <Select
-              options={[
-                { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
-              ]}
-            />
-          </Form.Item>
-
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="frame_number" label="Số Khung (Bắt buộc)" rules={[{ required: true, message: 'Nhập số khung!' }]}>
-                <Input placeholder="VD: RL9Y5DGMHTFEU..." />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="battery_number" label="Số Acquy / Pin">
-                <Input placeholder="VD: 1008264..." />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="brand" label="Hãng Xe" rules={[{ required: true, message: 'Nhập hãng!' }]}>
-                <Input placeholder="Yadea, Vinfast..." />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="model" label="Model Xe" rules={[{ required: true, message: 'Nhập model!' }]}>
-                <Input placeholder="I8, Feliz 2, OVA..." />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item name="color" label="Màu Sắc" rules={[{ required: true, message: 'Nhập màu!' }]}>
-            <Input placeholder="Trắng Sữa, Xám Bóng..." />
-          </Form.Item>
-
-          <Form.Item name="note" label="Ghi chú phiếu nhập">
-            <Input.TextArea placeholder="Số hoá đơn, đơn vị vận chuyển..." rows={2} />
-          </Form.Item>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setIsImportModalOpen(false)}>Hủy</Button>
-            <Button type="primary" htmlType="submit" loading={submitting} style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}>
-              Xác Nhận Nhập Kho
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-
-      {/* MODAL 3: LUÂN CHUYỂN XE THEO SỐ KHUNG */}
-      <Modal
-        title={
-          <Space>
-            <SwapOutlined style={{ color: '#722ed1' }} />
-            <span>Luân Chuyển Xe Theo Số Khung Sang Shop Khác</span>
-          </Space>
-        }
-        open={isTransferModalOpen}
-        onCancel={() => setIsTransferModalOpen(false)}
-        footer={null}
-        destroyOnClose
-        width={540}
-      >
-        <Form form={transferForm} layout="vertical" onFinish={handleTransferSubmit} style={{ marginTop: 16 }}>
-          <Form.Item name="frame_number" label="Chọn chiếc xe cần luân chuyển (Theo Số Khung)" rules={[{ required: true, message: 'Chọn xe cần chuyển!' }]}>
-            <Select
-              showSearch
-              placeholder="Tìm theo số khung hoặc model xe..."
-              optionFilterProp="label"
-              options={availableInStockVehicles.map((v) => ({
-                label: `[${v.frame_number}] - ${v.brand} ${v.model} (${v.color}) - Đang ở: ${v.branch}`,
-                value: v.frame_number,
-              }))}
-            />
-          </Form.Item>
-
-          <Form.Item name="toBranch" label="Chuyển đến Chi nhánh" rules={[{ required: true, message: 'Chọn chi nhánh nhận!' }]}>
-            <Select
-              options={[
-                { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item name="note" label="Lý do luân chuyển">
-            <Input.TextArea placeholder="Khách hàng ở shop khác yêu cầu..." rows={2} />
-          </Form.Item>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setIsTransferModalOpen(false)}>Hủy</Button>
-            <Button type="primary" htmlType="submit" loading={submitting} style={{ backgroundColor: '#722ed1', borderColor: '#722ed1' }}>
-              Xác Nhận Chuyển Kho
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-
-      {/* MODAL 4: LUÂN CHUYỂN HÀNG LOẠT */}
-      <Modal
-        title={
-          <Space>
-            <SwapOutlined style={{ color: '#722ed1' }} />
-            <span>Luân Chuyển Hàng Loạt ({selectedRowKeys.length} Xe Đã Chọn)</span>
-          </Space>
-        }
-        open={isBatchTransferModalOpen}
-        onCancel={() => setIsBatchTransferModalOpen(false)}
-        footer={null}
-        destroyOnClose
-        width={600}
-      >
-        <div style={{ marginBottom: 16 }}>
-          <Text type="secondary">
-            Bạn đang thực hiện luân chuyển <strong>{selectedRowKeys.length} xe</strong> sang chi nhánh mới:
-          </Text>
-          <div style={{ maxHeight: 150, overflowY: 'auto', marginTop: 8, padding: 8, background: '#f5f5f5', borderRadius: 6 }}>
-            {selectedVehicles.map((v, idx) => (
-              <div key={v.id || idx} style={{ fontSize: 13, marginBottom: 4 }}>
-                • <Text code>{v.frame_number}</Text> - {v.brand} {v.model} ({v.color}) | Hiện ở: <Tag color="blue">{v.branch}</Tag>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Form form={batchTransferForm} layout="vertical" onFinish={handleBatchTransferSubmit}>
-          <Form.Item name="toBranch" label="Chuyển tất cả đến Chi nhánh" rules={[{ required: true, message: 'Vui lòng chọn chi nhánh nhận!' }]}>
-            <Select
-              placeholder="Chọn chi nhánh đích..."
-              options={[
-                { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item name="note" label="Ghi chú đợt chuyển hàng loạt">
-            <Input.TextArea placeholder="Điều chuyển kho theo kế hoạch..." rows={2} />
-          </Form.Item>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setIsBatchTransferModalOpen(false)}>Hủy</Button>
-            <Button type="primary" htmlType="submit" loading={submitting} style={{ backgroundColor: '#722ed1', borderColor: '#722ed1' }}>
-              Xác Nhận Chuyển {selectedRowKeys.length} Xe
-            </Button>
-          </div>
-        </Form>
       </Modal>
     </div>
   );
