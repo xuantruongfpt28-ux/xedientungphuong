@@ -53,7 +53,7 @@ dayjs.extend(customParseFormat);
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedienthanhtuoi.vercel.app/api';
+const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedientungphuong.vercel.app/api';
 
 export interface Customer {
   id?: number;
@@ -96,9 +96,9 @@ export interface SystemAccount {
 }
 
 const DEFAULT_FIXED_ACCOUNTS: SystemAccount[] = [
-  { username: 'admin', password: '123456', fullName: 'Ban Quản Trị (Admin)', branch: 'Kiên Giang', role: 'admin' },
-  { username: 'chinhanh1', password: '123456', fullName: 'Chi nhánh 1', branch: 'Kiên Giang', role: 'staff' },
-  { username: 'chinhanh2', password: '123456', fullName: 'Chi nhánh 2', branch: 'Kiên Giang', role: 'staff' },
+  { username: 'admin', password: '123456', fullName: 'Ban Quản Trị (Admin)', branch: 'Chi nhánh 1', role: 'admin' },
+  { username: 'chinhanh1', password: '123456', fullName: 'Chi nhánh 1', branch: 'Chi nhánh 1', role: 'staff' },
+  { username: 'chinhanh2', password: '123456', fullName: 'Chi nhánh 2', branch: 'Chi nhánh 2', role: 'staff' },
 ];
 
 export const extractVehicleInfo = (item: Customer) => {
@@ -204,7 +204,7 @@ export const parseDateDetails = (customerData: any) => {
   return { day: '....', month: '....', year: '2026', fullDate: '---', dayjsObj: null };
 };
 
-const executePrintContract = (customer: Customer, selectedBranch: string = 'Chợ Mới') => {
+const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi nhánh 1') => {
   const { day, month, year } = parseDateDetails(customer);
 
   const hoTen = customer.fullName || customer.ho_ten || '';
@@ -224,20 +224,13 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Ch�
   const giaXe = formatMoney(customer.price || customer.gia_xe);
   const tongThanhToan = formatMoney(customer.price || customer.gia_xe);
 
-  let headerAddress = 'Tỉnh lộ 942, xã Chợ Mới, tỉnh An Giang';
-  let sellerTitle = 'Bên A ( Bên bán xe): Công ty TNHH XE ĐIỆN THANH TƯƠI CHỢ MỚI:';
-  let bankAccount = 'Tài khoản: Công ty TNHH Xe điện Thanh Tươi Chợ Mới - MBBANK- 1867676868';
+  let headerAddress = 'Chi nhánh 1';
+  let sellerTitle = 'Bên A ( Bên bán xe): CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 1';
+  let bankAccount = 'Tài khoản: Công ty TNHH Xe điện Thanh Tươi - MBBANK';
 
-  if (selectedBranch === 'Lấp Vò') {
-    headerAddress = 'Bình Hiệp A, xã Lấp Vò, tỉnh Đồng Tháp';
-    sellerTitle = 'I. Bên A ( Bên bán xe):  Công ty TNHH XE ĐIỆN THANH TƯƠI';
-    bankAccount = 'Tài khoản: Công ty TNHH Xe điện Thanh Tươi - MBBANK- 6167676868';
-  } else if (selectedBranch === 'Mỹ Luông 3') {
-    headerAddress = 'Châu Văn Liêm, ấp Thị 2, xã Long Điền, tỉnh An Giang';
-    sellerTitle = 'Bên A ( Bên bán xe): Công ty TNHH XE ĐIỆN THANH TƯƠI CN3';
-  } else if (selectedBranch === 'Mỹ Luông 4') {
-    headerAddress = '293 Châu Văn Liêm, xã Long Điền, tỉnh An Giang';
-    sellerTitle = 'Bên A ( Bên bán xe): Công ty TNHH XE ĐIỆN THANH TƯƠI CN4';
+  if (selectedBranch === 'Chi nhánh 2') {
+    headerAddress = 'Chi nhánh 2';
+    sellerTitle = 'Bên A ( Bên bán xe): CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 2';
   }
 
   const printWindow = window.open('', '_blank');
@@ -291,10 +284,8 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Ch�
         <div><strong>${sellerTitle}</strong></div>
         <div>${bankAccount}</div>
         <div>Điện thoại liên hệ : 0939.30.90.91</div>
-        <div>CN1: Bình Hiệp A, xã Lấp Vò, tỉnh Đồng Tháp</div>
-        <div>CN2: Tỉnh lộ 942, xã Chợ Mới, tỉnh An Giang</div>
-        <div>CN3: Châu Văn Liêm, ấp Thị 2, xã Long Điền, tỉnh An Giang</div>
-        <div>CN4: 293 Châu Văn Liêm, xã Long Điền, tỉnh An Giang</div>
+        <div>CN1: Chi nhánh 1</div>
+        <div>CN2: Chi nhánh 2</div>
 
         <div style="margin-top: 3px;"><strong>Bên B ( Bên mua xe):</strong></div>
         <div>
@@ -453,7 +444,7 @@ export default function App() {
 
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
   const [selectedPrintCustomer, setSelectedPrintCustomer] = useState<Customer | null>(null);
-  const [selectedBranchToPrint, setSelectedBranchToPrint] = useState<string>('Chợ Mới');
+  const [selectedBranchToPrint, setSelectedBranchToPrint] = useState<string>('Chi nhánh 1');
 
   const fetchAccountsFromCloud = async () => {
     try {
@@ -503,7 +494,6 @@ export default function App() {
         localStorage.setItem('currentUser', JSON.stringify(loggedInUser));
         setCurrentUser(loggedInUser);
 
-        // Ghi nhận lịch sử đăng nhập tự động
         await logActivity({
           actionType: 'LOGIN',
           description: `Đăng nhập vào hệ thống (${loggedInUser.fullName})`,
@@ -543,7 +533,6 @@ export default function App() {
 
       message.success(`Đã đổi mật khẩu cho tài khoản [${selectedAccountToEdit.username}] thành công trên toàn hệ thống!`);
       
-      // Ghi nhận lịch sử đổi mật khẩu
       await logActivity({
         actionType: 'STATUS_CHANGE',
         description: `Đổi mật khẩu tài khoản [${selectedAccountToEdit.username}] trên toàn hệ thống`,
@@ -610,13 +599,11 @@ export default function App() {
   }, [customers]);
 
   const branchOptions = useMemo(() => {
-    const branchSet = new Set<string>();
-    customers.forEach((c) => {
-      const name = c.branchName || c.chi_nhanh;
-      if (name && name.trim()) branchSet.add(name.trim());
-    });
-    return Array.from(branchSet).map((name) => ({ label: name, value: name }));
-  }, [customers]);
+    return [
+      { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+      { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+    ];
+  }, []);
 
   const brandOptions = useMemo(() => {
     const brandSet = new Set<string>();
@@ -631,14 +618,10 @@ export default function App() {
   const handleOpenPrintModal = (record: Customer) => {
     setSelectedPrintCustomer(record);
     const currentBranch = (record.branchName || record.chi_nhanh || '').trim().toLowerCase();
-    if (currentBranch.includes('lấp vò')) {
-      setSelectedBranchToPrint('Lấp Vò');
-    } else if (currentBranch.includes('cn 4') || currentBranch.includes('4')) {
-      setSelectedBranchToPrint('Mỹ Luông 4');
-    } else if (currentBranch.includes('cn 3') || currentBranch.includes('3') || currentBranch.includes('mỹ luông')) {
-      setSelectedBranchToPrint('Mỹ Luông 3');
+    if (currentBranch.includes('2')) {
+      setSelectedBranchToPrint('Chi nhánh 2');
     } else {
-      setSelectedBranchToPrint('Chợ Mới');
+      setSelectedBranchToPrint('Chi nhánh 1');
     }
     setIsPrintModalOpen(true);
   };
@@ -655,7 +638,7 @@ export default function App() {
     form.resetFields();
     if (currentUser) {
       form.setFieldsValue({
-        branchName: currentUser.branch,
+        branchName: currentUser.branch || 'Chi nhánh 1',
       });
     }
     setIsModalOpen(true);
@@ -677,7 +660,7 @@ export default function App() {
       color: record.color || record.mau || '',
       price: record.price ? Number(record.price) : (record.gia_xe ? Number(record.gia_xe) : 0),
       staffName: record.staffName || record.nhan_vien || '',
-      branchName: record.branchName || record.chi_nhanh || '',
+      branchName: record.branchName || record.chi_nhanh || 'Chi nhánh 1',
       frameNumber: record.frameNumber || record.so_khung || '',
       batteryNumber: record.batteryNumber || record.so_pin || '',
     });
@@ -691,7 +674,6 @@ export default function App() {
         await axios.put(`${BASE_API_URL}/customers/${editingCustomer.id}`, values);
         message.success('Cập nhật thành công!');
 
-        // Ghi log cập nhật khách hàng
         await logActivity({
           actionType: 'STATUS_CHANGE',
           description: `Sửa thông tin khách hàng: [${values.fullName}] - SĐT: [${values.phone}]`,
@@ -701,9 +683,8 @@ export default function App() {
         message.success('Thêm mới thành công!');
 
         const frameNum = (values.frameNumber || '').trim();
-        const branch = values.branchName || currentUser?.branch || 'Chợ Mới';
+        const branch = values.branchName || currentUser?.branch || 'Chi nhánh 1';
 
-        // Ghi log tạo đơn bán mới
         await logActivity({
           actionType: 'SALE',
           description: `Bán xe [${values.brand || ''} ${values.model || ''}] - Khách: [${values.fullName}] - Số khung: [${frameNum || 'N/A'}] - Chi nhánh: [${branch}]`,
@@ -758,7 +739,6 @@ export default function App() {
       await axios.delete(`${BASE_API_URL}/customers/${id}`);
       message.success('Đã xóa thành công!');
 
-      // Ghi log xóa đơn khách hàng
       await logActivity({
         actionType: 'DELETE',
         description: `Xóa hồ sơ khách hàng: [${targetCustomer?.fullName || targetCustomer?.ho_ten || id}] - SĐT: [${targetCustomer?.phone || 'N/A'}]`,
@@ -1138,7 +1118,7 @@ export default function App() {
               XE ĐIỆN TÙNG PHƯỢNG
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
-              Hệ thống Quản   lý Bán xe & In Hợp đồng
+              Hệ thống Quản lý Bán xe & In Hợp đồng
             </Text>
           </div>
 
@@ -1183,19 +1163,6 @@ export default function App() {
               </Button>
             </Form.Item>
           </Form>
-
-          <div
-            style={{
-              marginTop: 16,
-              padding: '10px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: 8,
-              textAlign: 'left',
-              fontSize: 12,
-              color: '#595959',
-            }}
-          >
-          </div>
         </Card>
       </div>
     );
@@ -1303,7 +1270,6 @@ export default function App() {
           boxSizing: 'border-box',
         }}
       >
-        {/* HEADER RESPONSIVE CHO MOBILE & DESKTOP */}
         <div
           style={{
             display: 'flex',
@@ -1377,7 +1343,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* TABS ĐIỀU HƯỚNG */}
         <Tabs
           activeKey={activeTab}
           onChange={(k) => setActiveTab(k)}
@@ -1511,10 +1476,8 @@ export default function App() {
             onChange={(e) => setSelectedBranchToPrint(e.target.value)}
             style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
           >
-            <Radio value="Chợ Mới"><strong>Chi nhánh Chợ Mới</strong></Radio>
-            <Radio value="Lấp Vò"><strong>Chi nhánh Lấp Vò</strong></Radio>
-            <Radio value="Mỹ Luông 3"><strong>Chi nhánh Mỹ Luông 3</strong></Radio>
-            <Radio value="Mỹ Luông 4"><strong>Chi nhánh Mỹ Luông 4</strong></Radio>
+            <Radio value="Chi nhánh 1"><strong>Chi nhánh 1</strong></Radio>
+            <Radio value="Chi nhánh 2"><strong>Chi nhánh 2</strong></Radio>
           </Radio.Group>
         </div>
       </Modal>
@@ -1567,10 +1530,8 @@ export default function App() {
           <Form.Item name="branchName" label="Chi nhánh">
             <Select
               options={[
-                { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
+                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
               ]}
             />
           </Form.Item>
