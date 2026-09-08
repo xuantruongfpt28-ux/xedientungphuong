@@ -1135,7 +1135,7 @@ export default function App() {
               <ShopOutlined />
             </div>
             <Title level={3} style={{ margin: 0, color: '#1f1f1f', fontWeight: 700 }}>
-              XE ĐIỆN THANH TƯƠI
+              XE ĐIỆN TÙNG PHƯỢNG
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
               Hệ thống Quản lý Bán xe & In Hợp đồng
