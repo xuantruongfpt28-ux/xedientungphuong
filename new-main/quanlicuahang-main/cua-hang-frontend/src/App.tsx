@@ -205,7 +205,7 @@ export const parseDateDetails = (customerData: any) => {
   return { day: '....', month: '....', year: '2026', fullDate: '---', dayjsObj: null };
 };
 
-const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi nhánh 1') => {
+const executePrintContract = (customer: Customer) => {
   const { day, month, year } = parseDateDetails(customer);
 
   const hoTen = customer.fullName || customer.ho_ten || '';
@@ -222,12 +222,6 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
   };
 
   const giaXe = formatMoney(customer.price || customer.gia_xe);
-
-  // Địa chỉ chi nhánh theo mẫu mới
-  let branchHeader = 'CN Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0866.979.841)';
-  if (selectedBranch === 'Chi nhánh 2') {
-    branchHeader = 'CN2 Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)';
-  }
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -271,7 +265,10 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
               <tr>
                 <td style="width: 55%; vertical-align: top;">
                   <strong style="font-size: 10.5px;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
-                  <span style="font-size: 8.5px;">${branchHeader}</span>
+                  <span style="font-size: 8px;">
+                    CN1: 102 Ấp Nội Ô, Xã Giồng Riềng, An Giang (0888.67.98.41)<br />
+                    CN2: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, An Giang (0976.820.941)
+                  </span>
                 </td>
                 <td style="width: 45%; vertical-align: top; text-align: center;">
                   <strong style="font-size: 10.5px;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
@@ -289,7 +286,7 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
 
           <div><strong>Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
           <div style="font-size: 8.5px;">
-            Địa chỉ: Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41) | Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
+            Địa chỉ: Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang | Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang
           </div>
 
           <div style="margin-top: 2px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
@@ -669,7 +666,7 @@ export default function App() {
 
   const handleConfirmPrint = () => {
     if (selectedPrintCustomer) {
-      executePrintContract(selectedPrintCustomer, selectedBranchToPrint);
+      executePrintContract(selectedPrintCustomer);
       setIsPrintModalOpen(false);
     }
   };
