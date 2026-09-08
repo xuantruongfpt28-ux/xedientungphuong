@@ -247,25 +247,31 @@ const executePrintContract = (customer: Customer) => {
           padding: 0; 
           background: #fff; 
           font-family: "Times New Roman", Times, serif; 
-          font-size: 10.5pt; 
-          line-height: 1.2; 
+          font-size: 12pt; 
+          line-height: 1.35; 
           color: #000; 
         }
 
-        .container { 
-          width: 100%; 
-          padding: 10mm 12mm 8mm 12mm; 
+        .page {
+          width: 100%;
+          min-height: 100vh;
+          padding: 15mm 15mm 12mm 15mm;
+          position: relative;
+        }
+
+        .page-break {
+          page-break-before: always;
         }
 
         table { width: 100%; border-collapse: collapse; }
         
-        table.grid-table { border: 1px solid #000; margin: 4px 0; }
+        table.grid-table { border: 1px solid #000; margin: 10px 0; }
         table.grid-table td, table.grid-table th { 
           border: 1px solid #000; 
-          padding: 3px 5px; 
+          padding: 6px 8px; 
           vertical-align: top; 
-          font-size: 9.5pt;
-          line-height: 1.15;
+          font-size: 11pt;
+          line-height: 1.3;
         }
 
         .bold { font-weight: bold; }
@@ -273,20 +279,21 @@ const executePrintContract = (customer: Customer) => {
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         
-        .info-row { margin-bottom: 2px; }
-        ul.note-list { margin: 2px 0; padding-left: 15px; font-size: 9pt; line-height: 1.15; }
-        ul.note-list li { margin-bottom: 2px; }
+        .info-row { margin-bottom: 6px; }
+        ul.note-list { margin: 10px 0; padding-left: 20px; font-size: 11pt; line-height: 1.4; }
+        ul.note-list li { margin-bottom: 8px; }
       </style>
     </head>
     <body>
-      <div class="container">
+      <!-- TRANG 1: THÔNG TIN VÀ MỤC I & II -->
+      <div class="page">
         <!-- HEADER CÔNG TY & QUỐC HIỆU -->
         <table>
           <tbody>
             <tr>
               <td style="width: 55%; vertical-align: top;">
-                <strong style="font-size: 11pt;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
-                <span style="font-size: 8.5pt;">
+                <strong style="font-size: 12pt;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
+                <span style="font-size: 9.5pt;">
                   <strong>CN Xe Điện Tổng Hợp:</strong><br />
                   102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
                   <strong>CN2 Xe Điện Yadea và Vinfast:</strong><br />
@@ -294,29 +301,29 @@ const executePrintContract = (customer: Customer) => {
                 </span>
               </td>
               <td style="width: 45%; vertical-align: top; text-align: center;">
-                <strong style="font-size: 11pt;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
-                <strong style="font-size: 10pt;">Độc lập - Tự do - Hạnh phúc</strong><br />
-                <i style="font-size: 9pt;">An Giang, Ngày ${day} Tháng ${month} Năm 20${year.slice(-2)}</i>
+                <strong style="font-size: 12pt;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
+                <strong style="font-size: 11pt;">Độc lập - Tự do - Hạnh phúc</strong><br />
+                <i style="font-size: 10pt;">An Giang, Ngày ${day} Tháng ${month} Năm 20${year.slice(-2)}</i>
               </td>
             </tr>
           </tbody>
         </table>
 
         <!-- TIÊU ĐỀ -->
-        <div class="text-center" style="margin: 6px 0 4px 0;">
-          <div class="bold" style="font-size: 14pt;">BIÊN NHẬN</div>
-          <div class="bold" style="font-size: 11pt;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
+        <div class="text-center" style="margin: 15px 0 10px 0;">
+          <div class="bold" style="font-size: 16pt;">BIÊN NHẬN</div>
+          <div class="bold" style="font-size: 13pt;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
         </div>
 
         <!-- THÔNG TIN BÊN A & BÊN B -->
         <div class="info-row"><strong>I. Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
-        <div class="info-row" style="font-size: 8.5pt;">
+        <div class="info-row" style="font-size: 9.5pt;">
           <strong>Địa Chỉ:</strong><br />
           Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
           Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
         </div>
 
-        <div class="info-row" style="margin-top: 4px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
+        <div class="info-row" style="margin-top: 8px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
         <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
         <div class="info-row">Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
         <div class="info-row">CCCD số: ............................................ Ngày cấp: ......................... Nơi cấp: Cục Cảnh Sát.</div>
@@ -330,9 +337,9 @@ const executePrintContract = (customer: Customer) => {
           Số tiền khách đặt cọc: ............................ Thu Xe cũ: ............................ Số Vin ( xe cũ ): ............................
         </div>
 
-        <div style="margin: 4px 0 2px 0; font-size: 9.5pt;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
+        <div style="margin: 8px 0 4px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
 
-        <!-- BẢNG ĐIỀU KHOẢN -->
+        <!-- BẢNG MỤC I VÀ MỤC II -->
         <table class="grid-table">
           <thead>
             <tr>
@@ -345,9 +352,9 @@ const executePrintContract = (customer: Customer) => {
               <td>
                 <div class="bold">YADEA</div>
                 <div>1. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 24 tháng. (Cụ thể lỗi 1 bình đổi cả bộ trong 18 tháng, lỗi bình nào đổi bình đó trong 6 tháng còn lại (Hoặc 20.000km))</div>
-                <div style="margin-top: 2px;">2. Động cơ, IC, bộ sạc bảo hành 36 tháng. Pin bảo hành 36 tháng (Hoặc 30.000km)</div>
-                <div style="margin-top: 2px;">3. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 12 tháng (Cụ thể lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó trong 3 tháng còn lại)</div>
-                <div class="bold" style="margin-top: 4px;">XE HÃNG KHÁC (JP Motor, Detech, Victoria,...)</div>
+                <div style="margin-top: 4px;">2. Động cơ, IC, bộ sạc bảo hành 36 tháng. Pin bảo hành 36 tháng (Hoặc 30.000km)</div>
+                <div style="margin-top: 4px;">3. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 12 tháng (Cụ thể lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó trong 3 tháng còn lại)</div>
+                <div class="bold" style="margin-top: 6px;">XE HÃNG KHÁC (JP Motor, Detech, Victoria,...)</div>
                 <div>1. Bình bảo hành 12 tháng, phù 06 tháng (nên xem hướng dẫn sử dụng ắc quy).</div>
                 <div>2. Động cơ, IC, bộ sạc bảo hành 12 tháng.</div>
                 <div>3. Bình bảo hành 12 tháng, phù 09 tháng (nên xem hướng dẫn sử dụng ắc quy).</div>
@@ -356,26 +363,35 @@ const executePrintContract = (customer: Customer) => {
                 <div class="italic">
                   <strong>Lần sạc đầu tiên:</strong> Sau khi sạc ắc quy đầy, sạc báo đèn xanh, rút sạc ra đợi khoảng 20 phút, cắm lại cho sạc tiếp khoảng 1 tiếng.
                 </div>
-                <div class="italic" style="margin-top: 3px;">
+                <div class="italic" style="margin-top: 6px;">
                   <strong>Trong quá trình sử dụng:</strong><br />
                   + Sau khi đi xe khoảng 30 phút để ắc quy nguội bớt rồi mới sạc.<br />
                   + Sạc sạc đầy mới sử dụng, Hạn chế tối đa tình trạng xe cạn ắc quy và sạc nhiều lần trong ngày.<br />
                   + Trường hợp cả tuần bạn không có nhu cầu sử dụng xe, thì mỗi tuần nên sạc 1 lần.
                 </div>
-                <div class="bold text-center" style="margin-top: 4px; font-size: 8.5pt;">
+                <div class="bold text-center" style="margin-top: 8px; font-size: 10pt;">
                   ẮC QUY SẼ XUỐNG CẤP DẦN THEO THỜI GIAN NÊN HÃY SỬ DỤNG ĐÚNG CÁCH ĐỂ SỬ DỤNG ẮC QUY ĐƯỢC LÂU HƠN
                 </div>
               </td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TRANG 2: BẮT ĐẦU TỪ MỤC III, IV VÀ LƯU Ý + CHỮ KÝ -->
+      <div class="page page-break">
+        <!-- BẢNG MỤC III VÀ MỤC IV -->
+        <table class="grid-table" style="margin-top: 0;">
+          <tbody>
             <tr>
-              <td>
+              <td style="width: 50%;">
                 <div class="bold">III. Thoả thuận và thống nhất giữa hai bên như sau:</div>
                 <div>* Giá bán xe chưa bao gồm phí trước bạ, phí bấm biển số và phí dịch vụ (đối với xe máy điện).</div>
                 <div>* Dịch vụ bấm biển số (không bao bảo hiểm và phí kẹp biển số):</div>
-                <div style="margin-top: 2px;">* Quà tặng: NÓN BẢO HIỂM</div>
-                <div style="margin-top: 2px;">* Phụ kiện theo xe: Bộ sạc.</div>
+                <div style="margin-top: 4px;">* Quà tặng: NÓN BẢO HIỂM</div>
+                <div style="margin-top: 4px;">* Phụ kiện theo xe: Bộ sạc.</div>
               </td>
-              <td>
+              <td style="width: 50%;">
                 <div class="bold">IV. Điều khoản chung:</div>
                 <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, phụ tùng theo xe đầy đủ.</div>
                 <div>* Bên B đã được bên A hướng dẫn sử dụng xe, chế độ bảo hành và kỹ năng lái xe an toàn, nhận quà khuyến mãi đầy đủ... bên B đã đọc và xác nhận những nội dung trên.</div>
@@ -385,10 +401,10 @@ const executePrintContract = (customer: Customer) => {
           </tbody>
         </table>
 
-        <!-- LƯU Ý -->
-        <div style="font-size: 8.5pt; line-height: 1.15; margin-top: 4px;">
-          <div class="bold" style="font-size: 9.5pt;">*LƯU Ý :</div>
-          <ul class="note-list" style="list-style-type: '✓ '; padding-left: 18px;">
+        <!-- MỤC LƯU Ý -->
+        <div style="line-height: 1.4; margin-top: 10px;">
+          <div class="bold" style="font-size: 12pt; text-decoration: underline; margin-bottom: 6px;">* LƯU Ý :</div>
+          <ul class="note-list" style="list-style-type: '✓ '; padding-left: 20px;">
             <li><strong style="text-decoration: underline;">Luôn Đội Nón bảo hiểm khi tham gia giao thông (Kể cả xe đạp điện).</strong></li>
             <li>Những phần hao mòn trong quá trình sử dụng không bảo hành.</li>
             <li>Không bảo hành đối với xe đã đã thay đổi kết cấu về Điện.</li>
@@ -412,21 +428,21 @@ const executePrintContract = (customer: Customer) => {
           </ul>
         </div>
 
-        <div class="text-right italic" style="font-size: 9pt; margin-top: 4px;">
+        <div class="text-right italic" style="font-size: 11pt; margin-top: 15px;">
           Tôi (bên B) hoàn toàn đồng ý với những thoả thuận trên.
         </div>
 
         <!-- CHỮ KÝ -->
-        <table style="margin-top: 8px; text-align: center; font-size: 10pt;">
+        <table style="margin-top: 25px; text-align: center; font-size: 12pt;">
           <tbody>
             <tr>
               <td style="width: 50%;">
                 <strong>Bên bán A</strong><br />
-                <i style="font-size: 8.5pt; text-decoration: underline;">(Ký tên và đóng dấu)</i>
+                <i style="font-size: 10pt; text-decoration: underline;">(Ký tên và đóng dấu)</i>
               </td>
               <td style="width: 50%;">
                 <strong>Bên mua B</strong><br />
-                <i style="font-size: 8.5pt; text-decoration: underline;">(Ký tên và ghi rõ họ tên)</i>
+                <i style="font-size: 10pt; text-decoration: underline;">(Ký tên và ghi rõ họ tên)</i>
               </td>
             </tr>
           </tbody>
