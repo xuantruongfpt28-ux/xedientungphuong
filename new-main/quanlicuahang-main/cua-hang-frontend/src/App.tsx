@@ -226,12 +226,12 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
   const tongThanhToan = formatMoney(customer.price || customer.gia_xe);
 
   let headerAddress = 'Chi nhánh 1';
-  let sellerTitle = 'Bên A ( Bên bán xe): CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 1';
-  let bankAccount = 'Tài khoản: Công ty TNHH Xe điện Thanh Tươi - MBBANK';
+  let sellerTitle = 'CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 1';
+  let bankAccount = 'STK: Công ty TNHH Xe điện Thanh Tươi - MBBANK';
 
   if (selectedBranch === 'Chi nhánh 2') {
     headerAddress = 'Chi nhánh 2';
-    sellerTitle = 'Bên A ( Bên bán xe): CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 2';
+    sellerTitle = 'CÔNG TY TNHH XE ĐIỆN THANH TƯƠI - CHI NHÁNH 2';
   }
 
   const printWindow = window.open('', '_blank');
@@ -247,157 +247,159 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
       <meta charset="utf-8">
       <title>Hop_dong_${hoTen || 'khach_hang'}</title>
       <style>
-        @page { size: A4 portrait; margin: 4mm 6mm; }
+        @page { size: A4 portrait; margin: 6mm 8mm; }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        html, body { margin: 0; padding: 0; background: #fff; font-family: "Times New Roman", Times, serif; font-size: 11px; line-height: 1.25; color: #000; }
+        html, body { margin: 0; padding: 0; background: #fff; font-family: "Times New Roman", Times, serif; font-size: 11px; line-height: 1.35; color: #000; }
         .page { width: 100%; }
         table { width: 100%; border-collapse: collapse; }
-        table.main-grid { border: 1px solid #000; margin: 4px 0; table-layout: fixed; }
-        table.main-grid td, table.main-grid th { border: 1px solid #000; padding: 3px 4px; vertical-align: top; }
+        table.main-grid { border: 1px solid #000; margin: 6px 0; table-layout: fixed; }
+        table.main-grid td, table.main-grid th { border: 1px solid #000; padding: 5px 6px; vertical-align: top; }
         .bold { font-weight: bold; }
         .italic { font-style: italic; }
+        .section-title { font-weight: bold; text-decoration: underline; margin-bottom: 3px; }
       </style>
     </head>
     <body>
       <div class="page">
-        <table style="margin-bottom: 2px;">
+        <!-- HEADER -->
+        <table>
           <tbody>
             <tr>
-              <td style="width: 50%; vertical-align: top; text-align: center;">
+              <td style="width: 45%; vertical-align: top; text-align: center;">
                 <strong style="font-size: 11.5px;">CÔNG TY TNHH XE ĐIỆN THANH TƯƠI</strong><br />
                 <span style="font-size: 10px;">${headerAddress}</span><br />
                 <span style="font-size: 10px;">ĐT: 0939.30.90.91</span>
               </td>
-              <td style="width: 50%; vertical-align: top; text-align: center;">
-                <strong style="font-size: 11.5px;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
+              <td style="width: 55%; vertical-align: top; text-align: center;">
+                <strong style="font-size: 11.5px;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
                 <strong style="font-size: 11px;">Độc lập - Tự do - Hạnh phúc</strong><br />
-                <i style="font-size: 10px;">..., Ngày ${day} Tháng ${month} Năm ${year}</i>
+                <i style="font-size: 10px;">Ngày ${day} tháng ${month} năm ${year}</i>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div style="text-align: center; margin: 2px 0 4px 0;">
+        <div style="text-align: center; margin: 6px 0 8px 0;">
           <div class="bold" style="font-size: 14px;">BIÊN NHẬN</div>
           <div class="bold" style="font-size: 11.5px;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
         </div>
 
-        <div><strong>${sellerTitle}</strong></div>
-        <div>${bankAccount}</div>
-        <div>Điện thoại liên hệ : 0939.30.90.91</div>
-        <div>CN1: Chi nhánh 1</div>
-        <div>CN2: Chi nhánh 2</div>
-
-        <div style="margin-top: 3px;"><strong>Bên B ( Bên mua xe):</strong></div>
-        <div>
-          Họ và tên: <strong>${hoTen || '...................................................'}</strong>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          Điện thoại: <strong>${dienThoai || '.........................'}</strong>
-        </div>
-        <div>Địa chỉ: <strong>${diaChi || '.......................................................................................................................................'}</strong></div>
-        <div>CCCD số: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ngày cấp: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nơi cấp: Cục Cảnh sát quản lý hành chính về TTXH</div>
-
-        <div style="margin: 3px 0 2px 0;">
-          Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:
+        <!-- THÔNG TIN BÊN BÁN & BÊN MUA -->
+        <div style="margin-bottom: 4px;">
+          <div class="bold">Bên A (Bên bán xe): ${sellerTitle}</div>
+          <div>- Địa chỉ / Liên hệ: ${headerAddress} - ĐT: 0939.30.90.91</div>
+          <div>- Tài khoản thanh toán: ${bankAccount}</div>
         </div>
 
+        <div style="margin-bottom: 6px;">
+          <div class="bold">Bên B (Bên mua xe):</div>
+          <div>- Họ và tên: <strong style="font-size: 11.5px;">${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
+          <div>- Địa chỉ: <strong>${diaChi || '.......................................................................................................................................'}</strong></div>
+          <div>- CCCD số: .................................................... Ngày cấp: .................... Nơi cấp: Cục Cảnh sát QLHC về TTXH</div>
+        </div>
+
+        <div style="margin-bottom: 6px;">
+          Sau khi bàn bạc và đi đến thống nhất, Bên A đồng ý bán và Bên B đồng ý mua sản phẩm xe điện với các điều khoản cụ thể sau đây:
+        </div>
+
+        <!-- BẢNG ĐIỀU KHOẢN & THÔNG TIN -->
         <table class="main-grid">
           <thead>
             <tr>
-              <th style="width: 33.33%; text-align: center; font-weight: bold;">I.ĐIỀU KHOẢN VỀ BẢO HÀNH</th>
-              <th style="width: 33.33%; text-align: center; font-weight: bold;">II. THÔNG TIN VỀ XE</th>
-              <th style="width: 33.34%; text-align: center; font-weight: bold;">III. HƯỚNG DẪN SỬ DỤNG ẮC QUY</th>
+              <th style="width: 32%; text-align: center; font-weight: bold;">I. ĐIỀU KHOẢN BẢO HÀNH</th>
+              <th style="width: 36%; text-align: center; font-weight: bold;">II. THÔNG TIN SẢN PHẨM & THANH TOÁN</th>
+              <th style="width: 32%; text-align: center; font-weight: bold;">III. HƯỚNG DẪN SỬ DỤNG ẮC QUY / PIN</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>
-                <div class="bold">YADEA</div>
-                <div style="margin: 2px 0;">Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 24 tháng, cụ thể lỗi 1 bình đổi cả bộ trong 18 tháng, lỗi bình nào đổi bình đó trong 6 tháng còn lại (Hoặc 20.000km)</div>
-                <div style="margin: 2px 0;">Động cơ, IC, bộ sạc bảo hành 36 tháng. Pin bảo hành 36 tháng (Hoặc 30.000km)</div>
+                <div class="bold" style="color: #000;">1. Dòng xe YADEA:</div>
+                <div style="margin-bottom: 4px;">- Động cơ, IC, bộ sạc bảo hành 24 tháng.<br>- Bình bảo hành 24 tháng: Lỗi 1 bình đổi cả bộ trong 18 tháng đầu, lỗi bình nào đổi bình đó trong 6 tháng còn lại (hoặc tối đa 20.000km).<br>- Hoặc gói cao cấp: Động cơ, IC, bộ sạc, Pin bảo hành 36 tháng (hoặc 30.000km).</div>
+                
+                <div class="bold" style="color: #000; margin-top: 6px;">2. Dòng xe BMX, PEGA, DK, SONSU, JP, UNI:</div>
+                <div>- Động cơ, IC, bộ sạc bảo hành 12 tháng.<br>- Bình ắc quy bảo hành 12 tháng (phồng bảo hành 06 - 09 tháng tùy hãng, tuân thủ đúng hướng dẫn sử dụng).</div>
               </td>
               <td>
-                <div>*Model : <strong>${modelXe}</strong></div>
-                <div>*Màu: <strong>${mauXe}</strong></div>
-                <div>*Số khung: <strong>${soKhung}</strong></div>
-                <div>* Số ắc quy/pin: <strong>${soPin}</strong></div>
-                <div>* Số động cơ:</div>
-                <div>* Mua thêm phụ kiện:</div>
-                <div>* Thu xe cũ:</div>
-                <div>Còn lại:</div>
-                <div>* Đã cọc:</div>
-                <div>* Giá xe: <strong>${giaXe}</strong></div>
-                <div>* <strong>Tổng thanh toán: ${tongThanhToan}</strong></div>
-                <div>Hình thức thanh toán:<br /> *Trả trước: &nbsp;&nbsp;&nbsp;&nbsp;<br /> *Còn lại:</div><br />
-                <div>* Phụ kiện theo xe: Bộ sạc</div>
+                <div>* Model xe: <strong style="font-size: 11.5px;">${modelXe}</strong></div>
+                <div>* Màu sắc: <strong>${mauXe}</strong></div>
+                <div>* Số khung: <strong style="font-family: monospace; font-size: 11.5px;">${soKhung}</strong></div>
+                <div>* Số ắc quy/pin: <strong style="font-family: monospace;">${soPin}</strong></div>
+                <div>* Số động cơ: ........................................</div>
+                <div>* Phụ kiện kèm theo: Bộ sạc chính hãng</div>
+                <hr style="border: none; border-top: 1px dashed #666; margin: 4px 0;" />
+                <div>* Giá niêm yết xe: <strong>${giaXe}</strong></div>
+                <div>* Khách mua thêm phụ kiện: ...................</div>
+                <div>* Thu xe cũ (nếu có): ............................</div>
+                <div>* Đã đặt cọc: ...........................................</div>
+                <div>* Hình thức thanh toán: Trả trước / Tiền mặt / Chuyển khoản</div>
+                <div style="margin-top: 2px;"><strong style="font-size: 11.5px;">* TỔNG THANH TOÁN: ${tongThanhToan}</strong></div>
               </td>
               <td>
-                <div class="italic" style="font-size: 10px;">
-                  <strong>Lần sạc đầu tiên:</strong> sau khi sạc ắc quy đầy, sạc báo đèn xanh, rút sạc ra đợi khoảng 20 phút, cắm lại cho sạc tiếp tục khoảng 1 tiếng.
+                <div class="italic">
+                  <strong>- Lần sạc đầu tiên:</strong> Sau khi sạc đầy (đèn sạc báo xanh), rút sạc ra đợi khoảng 20 phút rồi cắm sạc tiếp tục khoảng 1 tiếng nữa.
                 </div>
-                <div class="italic" style="font-size: 10px; margin-top: 2px;">
-                  <strong>Trong quá trình sử dụng:</strong><br />
-                  + Bạn nên để xe khoảng 30 phút để ắc quy nguội bớt rồi hãy sạc.<br />
-                  + Nên sạc đầy rồi mới sử dụng. Hạn chế tối đa tình trạng xe cạn ắc quy và sạc nhiều lần trong ngày.<br />
-                  + Trường hợp có việc bận không có nhu cầu sử dụng xe, thì mỗi tuần nên sạc 1 lần.
+                <div class="italic" style="margin-top: 4px;">
+                  <strong>- Trong quá trình sử dụng:</strong><br />
+                  + Chờ khoảng 30 phút sau khi vừa đi về để ắc quy/pin nguội bớt rồi mới tiến hành cắm sạc.<br />
+                  + Nên sạc đầy trước khi sử dụng. Hạn chế tối đa tình trạng cạn kiệt bình và không sạc nhồi nhiều lần trong ngày.<br />
+                  + Nếu không sử dụng xe trong thời gian dài, tối thiểu mỗi tuần phải sạc điện 1 lần để duy trì tuổi thọ.
                 </div>
-                <div class="bold" style="font-size: 9.5px; margin-top: 3px;">
-                  ẮC QUY SẼ XUỐNG CẤP DẦN THEO THỜI GIAN NÊN HÃY SỬ DỤNG ĐÚNG CÁCH ĐỂ SỬ DỤNG ẮC QUY ĐƯỢC LÂU HƠN
+                <div class="bold" style="font-size: 10px; margin-top: 6px; text-align: center; border-top: 1px solid #000; padding-top: 3px;">
+                  ẮC QUY/PIN SẼ XUỐNG CẤP DẦN THEO THỜI GIAN, VUI LÒNG SỬ DỤNG ĐÚNG CÁCH ĐỂ KÉO DÀI ĐỘ BỀN!
                 </div>
               </td>
             </tr>
             <tr>
               <td>
-                <div class="bold">BMX, PEGA, DK, SONSU…<br />JP, UNI</div><br />
-                <div style="margin: 2px 0;">Bình bảo hành 12 tháng, phù 06 tháng ( nên xem hướng dẫn sử dụng ắc quy).</div><br />
-                <div style="margin: 2px 0;">Động cơ, IC, bộ sạc bảo hành 12 tháng.</div><br />
-                <div style="margin: 2px 0;">Bình bảo hành 12 tháng, phù 09 tháng ( nên xem hướng dẫn sử dụng ắc quy).</div><br />
+                <div class="section-title">IV. QUYỀN LỢI & ƯU ĐÃI</div>
+                <div>* Giá bán xe chưa bao gồm lệ phí trước bạ, phí đăng ký biển số và phí dịch vụ (đối với xe máy điện).</div>
+                <div>* Dịch vụ bấm biển số trọn gói (không bao gồm bảo hiểm và kẹp biển số): ........................</div>
+                <div>* Quà tặng kèm theo: <strong>01 NÓN BẢO HIỂM CHÍNH HÃNG</strong></div>
+                <div class="bold italic" style="margin-top: 4px; color: #b71c1c;">* ƯU ĐÃI ĐẶC BIỆT: Miễn phí công cứu hộ tận nơi trong bán kính 15km trong 12 tháng đầu khi xe gặp sự cố KÉO GA KHÔNG CHẠY.</div>
               </td>
-              <td>
-                <div class="bold">IV: Thoả thuận và thống nhất giữa hai bên như sau</div>
-                <div>* Giá bán xe chưa bao gồm phí trước bạ, phí bấm biển số và phí dịch vụ ( đối với xe máy điện)</div>
-                <div>* Dịch vụ bấm biển số (không bao bảo hiểm và phí kẹp biển số):</div>
-                <div class="bold">* Quà tặng: NÓN BẢO HIỂM</div><br /><br />
-                <div class="bold italic" style="margin-top: 2px;">*ƯU ĐÃI ĐẶC BIỆT: Miễn công cứu hộ tận nhà 12 tháng khi xe KÉO GA KHÔNG CHẠY (15km)</div>
-              </td>
-              <td>
-                <div class="bold">V: Điều khoản chung</div>
-                <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, phụ tùng theo xe đầy đủ.</div>
-                <div>* Bên B đã được bên A hướng dẫn sử dụng xe, chế độ bảo hành và kỹ năng lái xe an toàn, nhận quà khuyến mãi đầy đủ, bên B đã đọc và xác nhận những nội dung trên.</div>
-                <div>* Biên nhận được lập thành 02 bản có giá trị như nhau , mỗi bên giữ 1 bản</div>
+              <td colspan="2">
+                <div class="section-title">V. ĐIỀU KHOẢN CHUNG & CAM KẾT</div>
+                <div>1. Bên B đã kiểm tra kỹ lưỡng tình trạng xe mới 100%, không bị trầy xước, đầy đủ phụ tùng và phụ kiện đi kèm trước khi nhận xe.</div>
+                <div>2. Bên B đã được nhân viên Bên A hướng dẫn chi tiết cách vận hành xe, phổ biến chế độ bảo hành, kỹ năng lái xe an toàn và nhận đủ quà tặng khuyến mãi. Bên B đã đọc, hiểu rõ và hoàn toàn đồng ý với toàn bộ các điều khoản quy định tại biên nhận này.</div>
+                <div>3. Hợp đồng kiêm biên nhận này được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản để thực hiện.</div>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div style="margin-top: 3px;">
-          <div class="bold">*LƯU Ý :</div>
-          <table style="font-size: 9.5px; line-height: 1.15;">
+        <!-- LƯU Ý QUAN TRỌNG -->
+        <div style="margin-top: 4px; border: 1px solid #000; padding: 4px 6px;">
+          <div class="bold" style="text-decoration: underline; margin-bottom: 2px;">CÁC LƯU Ý QUAN TRỌNG KHI BẢO HÀNH & SỬ DỤNG:</div>
+          <table style="font-size: 10px; line-height: 1.25;">
             <tbody>
-              <tr><td style="width: 14px; vertical-align: top;">✓</td><td class="bold italic">LUÔN ĐỘI NÓN BẢO HIỂM KHI THAM GIA GIAO THÔNG (Kể cả xe đạp điện).</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">NHỮNG PHẦN HAO MÒN TRONG QUÁ TRÌNH SỬ DỤNG KHÔNG BẢO HÀNH .</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">KHÔNG BẢO HÀNH ĐỐI VỚI XE ĐÃ THAY ĐỔI KẾT CẤU VỀ ĐIỆN.</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">BẢO HÀNH SỬA CHỮA KHÔNG BẢO HÀNH ĐỔI MỚI.</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">BẢO HÀNH PHẢI CHO THÁO XE, ĐỒNG THỜI XE PHẢI ĐƯỢC ĐEM ĐẾN CỬA HÀNG.</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">MỌI VẤN ĐỀ PHÁT SINH VỚI XE TRONG QUÁ TRÌNH SỬ DỤNG PHẢI ĐEM ĐẾN CỬA HÀNG TRONG THỜI GIAN NHANH NHẤT (1-3 NGÀY) ĐỂ ĐƯỢC GIẢI QUYẾT. NẾU SAU THỜI GIAN TRÊN CỬA HÀNG HOÀN TOÀN KHÔNG CHỊU TRÁCH NHIỆM.</td></tr>
-              <tr><td style="vertical-align: top;">✓</td><td class="bold">PHÍ ĐỔI - TRẢ SẢN PHẨM 30% TRONG VÒNG 30 NGÀY, KỂ TỪ NGÀY MUA.</td></tr>
+              <tr><td style="width: 12px; vertical-align: top;">✓</td><td class="bold">LUÔN ĐỘI NÓN BẢO HIỂM ĐẠT CHUẨN KHI THAM GIA GIAO THÔNG (Áp dụng cho cả xe đạp điện).</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold">CÁC CHI TIẾT HAO MÒN TỰ NHIÊN TRONG QUÁ TRÌNH SỬ DỤNG SẼ KHÔNG THUỘC PHẠM VI BẢO HÀNH.</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold">TỪ CHỐI BẢO HÀNH ĐỐI VỚI XE ĐÃ TỰ Ý THAY ĐỔI KẾT CẤU, ĐỘ CHẾ HỆ THỐNG ĐIỆN.</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold">CHẾ ĐỘ BẢO HÀNH LÀ SỬA CHỮA, KHÔNG ÁP DỤNG CHÍNH SÁCH ĐỔI MỚI TOÀN BỘ XE.</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold">ĐỂ BẢO HÀNH, KHÁCH HÀNG PHẢI ĐƯA XE TRỰC TIẾP ĐẾN CỬA HÀNG ĐỂ KỸ THUẬT VIÊN KIỂM TRA VÀ THÁO RÁP.</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold" style="color: #b71c1c;">MỌI SỰ CỐ / VẤN ĐỀ PHÁT SINH TRONG QUÁ TRÌNH SỬ DỤNG PHẢI ĐƯỢC ĐƯA ĐẾN CỬA HÀNG SỚM NHẤT (TRONG VÒNG 1 - 3 NGÀY) ĐỂ ĐƯỢC HỖ TRỢ. QUÁ THỜI GIAN TRÊN, CỬA HÀNG XIN QUYỀN MIỄN TRÁCH NHIỆM GIẢI QUYẾT.</td></tr>
+              <tr><td style="vertical-align: top;">✓</td><td class="bold">PHÍ ĐỔI - TRẢ SẢN PHẨM: 30% GIÁ TRỊ XE TRONG VÒNG 30 NGÀY ĐẦU TIÊN TÍNH TỪ NGÀY MUA.</td></tr>
             </tbody>
           </table>
-          <div style="text-align: right; font-style: italic; margin-top: 2px; font-size: 9.5px;">
-            Tôi (bên B) hoàn toàn đồng ý với những thoả thuận trên.
+          <div style="text-align: right; font-style: italic; margin-top: 3px; font-size: 10px;">
+            Xác nhận: Tôi (Bên B) đã đọc, hiểu rõ và hoàn toàn đồng ý với toàn bộ nội dung thỏa thuận trên.
           </div>
         </div>
 
-        <table style="margin-top: 10px; text-align: center;">
+        <!-- CHỮ KÝ -->
+        <table style="margin-top: 12px; text-align: center;">
           <tbody>
             <tr>
               <td style="width: 50%; vertical-align: top;">
-                <strong style="font-size: 11.5px;">Bên bán A</strong><br />
-                <i style="font-size: 9.5px;">( Ký và ghi rõ họ tên)</i>
+                <strong style="font-size: 11.5px;">ĐẠI DIỆN BÊN BÁN (Bên A)</strong><br />
+                <i style="font-size: 10px;">(Ký và ghi rõ họ tên)</i>
+                <div style="height: 50px;"></div>
               </td>
               <td style="width: 50%; vertical-align: top;">
-                <strong style="font-size: 11.5px;">Bên mua B</strong><br />
-                <i style="font-size: 9.5px;">( Ký và ghi rõ họ tên)</i>
+                <strong style="font-size: 11.5px;">ĐẠI DIỆN BÊN MUA (Bên B)</strong><br />
+                <i style="font-size: 10px;">(Ký và ghi rõ họ tên)</i>
+                <div style="height: 50px;"></div>
               </td>
             </tr>
           </tbody>
@@ -670,7 +672,6 @@ export default function App() {
   const handleFormSubmit = async (values: any) => {
     setSubmitting(true);
 
-    // Chuẩn hóa và ép kiểu giá bán
     const rawPrice = values.price;
     let parsedPrice = 0;
     if (typeof rawPrice === 'number') {
@@ -692,7 +693,6 @@ export default function App() {
       staffName: values.staffName?.trim() || '',
       branchName: values.branchName || 'Chi nhánh 1',
       vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
-      // Tương thích tên cột Tiếng Việt trên Backend
       ho_ten: values.fullName?.trim() || '',
       dien_thoai: values.phone?.trim() || '',
       dia_chi: values.address?.trim() || '',
