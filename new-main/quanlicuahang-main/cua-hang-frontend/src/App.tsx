@@ -236,10 +236,34 @@ const executePrintContract = (customer: Customer) => {
       <meta charset="utf-8">
       <title>Hop_dong_${hoTen || 'khach_hang'}</title>
       <style>
-        @page { size: A4 landscape; margin: 4mm 5mm; }
+        /* CSS XÓA HEADER VÀ FOOTER MẶC ĐỊNH CỦA TRÌNH DUYỆT */
+        @page { 
+          size: A4 landscape; 
+          margin: 0; /* Xóa lề trang in để triệt tiêu dòng ngày giờ và tiêu đề */
+        }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        html, body { margin: 0; padding: 0; background: #fff; font-family: "Times New Roman", Times, serif; font-size: 10px; line-height: 1.15; color: #000; }
-        .wrapper { width: 100%; display: flex; flex-direction: row; justify-content: space-between; gap: 8px; }
+        
+        html, body { 
+          margin: 0; 
+          padding: 0; 
+          background: #fff; 
+          font-family: "Times New Roman", Times, serif; 
+          font-size: 10px; 
+          line-height: 1.15; 
+          color: #000; 
+        }
+
+        /* Tạo khoảng cách an toàn (padding) bên trong nội dung thay cho margin trang */
+        .wrapper { 
+          width: 100%; 
+          height: 100vh;
+          padding: 8mm 8mm 5mm 8mm; 
+          display: flex; 
+          flex-direction: row; 
+          justify-content: space-between; 
+          gap: 8px; 
+        }
+
         .col-left { width: 52%; }
         .col-right { width: 47.5%; }
         table { width: 100%; border-collapse: collapse; }
