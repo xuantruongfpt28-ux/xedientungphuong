@@ -236,10 +236,10 @@ const executePrintContract = (customer: Customer) => {
       <meta charset="utf-8">
       <title>Hop_dong_${hoTen || 'khach_hang'}</title>
       <style>
-        /* CSS XÓA HEADER VÀ FOOTER MẶC ĐỊNH CỦA TRÌNH DUYỆT */
+        /* Khổ giấy A4 dọc chuẩn */
         @page { 
-          size: A4 landscape; 
-          margin: 0; /* Xóa lề trang in để triệt tiêu dòng ngày giờ và tiêu đề */
+          size: A4 portrait; 
+          margin: 0; 
         }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
@@ -248,222 +248,165 @@ const executePrintContract = (customer: Customer) => {
           padding: 0; 
           background: #fff; 
           font-family: "Times New Roman", Times, serif; 
-          font-size: 10px; 
-          line-height: 1.15; 
+          font-size: 13pt; 
+          line-height: 1.35; 
           color: #000; 
         }
 
-        /* Tạo khoảng cách an toàn (padding) bên trong nội dung thay cho margin trang */
-        .wrapper { 
+        .container { 
           width: 100%; 
-          height: 100vh;
-          padding: 8mm 8mm 5mm 8mm; 
-          display: flex; 
-          flex-direction: row; 
-          justify-content: space-between; 
-          gap: 8px; 
+          padding: 15mm 15mm 10mm 15mm; 
         }
 
-        .col-left { width: 52%; }
-        .col-right { width: 47.5%; }
         table { width: 100%; border-collapse: collapse; }
-        table.grid-table { border: 1px solid #000; margin: 3px 0; }
-        table.grid-table td, table.grid-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: top; }
+        
+        /* Bảng điều khoản */
+        table.grid-table { border: 1px solid #000; margin: 8px 0; }
+        table.grid-table td, table.grid-table th { 
+          border: 1px solid #000; 
+          padding: 6px 8px; 
+          vertical-align: top; 
+          font-size: 11pt;
+          line-height: 1.25;
+        }
+
         .bold { font-weight: bold; }
         .italic { font-style: italic; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         
-        /* Bảng bảo dưỡng */
-        table.maint-table { border: 1px solid #000; margin-top: 2px; font-size: 8.5px; }
-        table.maint-table th, table.maint-table td { border: 1px solid #000; padding: 1px 2px; text-align: center; }
-        table.maint-table td.left { text-align: left; }
+        .info-row { margin-bottom: 4px; }
       </style>
     </head>
     <body>
-      <div class="wrapper">
-        <!-- CỘT TRÁI: HỢP ĐỒNG BÁN XE -->
-        <div class="col-left">
-          <table>
-            <tbody>
-              <tr>
-                <td style="width: 55%; vertical-align: top;">
-                  <strong style="font-size: 10.5px;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
-                  <span style="font-size: 8px;">
-                    CN1: 102 Ấp Nội Ô, Xã Giồng Riềng, An Giang (0888.67.98.41)<br />
-                    CN2: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, An Giang (0976.820.941)
-                  </span>
-                </td>
-                <td style="width: 45%; vertical-align: top; text-align: center;">
-                  <strong style="font-size: 10.5px;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
-                  <strong style="font-size: 9.5px;">Độc lập - Tự do - Hạnh phúc</strong><br />
-                  <i style="font-size: 8.5px;">An Giang, Ngày ${day} Tháng ${month} Năm ${year}</i>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="container">
+        <!-- HEADER CÔNG TY & QUỐC HIỆU -->
+        <table>
+          <tbody>
+            <tr>
+              <td style="width: 55%; vertical-align: top;">
+                <strong style="font-size: 12pt;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
+                <span style="font-size: 10pt;">
+                  CN1: 102 Ấp Nội Ô, Xã Giồng Riềng, An Giang (0888.67.98.41)<br />
+                  CN2: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, An Giang (0976.820.941)
+                </span>
+              </td>
+              <td style="width: 45%; vertical-align: top; text-align: center;">
+                <strong style="font-size: 12pt;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
+                <strong style="font-size: 11pt;">Độc lập - Tự do - Hạnh phúc</strong><br />
+                <i style="font-size: 10.5pt;">An Giang, Ngày ${day} Tháng ${month} Năm ${year}</i>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-          <div class="text-center" style="margin: 2px 0;">
-            <div class="bold" style="font-size: 13px;">BIÊN NHẬN</div>
-            <div class="bold" style="font-size: 10.5px;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
-          </div>
-
-          <div><strong>Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
-          <div style="font-size: 8.5px;">
-            Địa chỉ: Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang | Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang
-          </div>
-
-          <div style="margin-top: 2px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
-          <div>Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
-          <div>Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
-          <div>CCCD số: ............................................ Ngày cấp: ......................... Nơi cấp: Cục Cảnh Sát.</div>
-          <div>
-            Thông Tin Xe: <strong>${modelXe}</strong> &nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong> &nbsp;&nbsp; Màu xe: <strong>${mauXe}</strong>
-          </div>
-          <div>
-            Ngân Hàng Vay: ............................ Số tiền vay: ............................ Giá xe: <strong>${giaXe}</strong>
-          </div>
-          <div>
-            Số tiền khách đặt cọc: ............................ Thu Xe cũ: ............................ Số Vin (xe cũ): ............................
-          </div>
-
-          <div style="margin: 2px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
-
-          <table class="grid-table" style="font-size: 8.5px;">
-            <thead>
-              <tr>
-                <th style="width: 50%;" class="text-center">I. ĐIỀU KHOẢN VỀ BẢO HÀNH</th>
-                <th style="width: 50%;" class="text-center">II. HƯỚNG DẪN SỬ DỤNG ẮC QUY</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="bold">YADEA</div>
-                  <div>• Động cơ, IC, bộ sạc BH 24 tháng. Bình BH 24 tháng (lỗi 1 bình đổi cả bộ trong 18 tháng, lỗi bình nào đổi bình đó 6 tháng còn lại hoặc 20.000km).</div>
-                  <div>• Động cơ, IC, bộ sạc BH 36 tháng. Pin BH 36 tháng (hoặc 30.000km).</div>
-                  <div>• Động cơ, IC, bộ sạc BH 24 tháng. Bình BH 12 tháng (lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó 3 tháng còn lại).</div>
-                  <div class="bold" style="margin-top: 2px;">XE HÃNG KHÁC (JP Motor, Detech, Victoria,…)</div>
-                  <div>• Bình BH 12 tháng, phù 06 tháng.</div>
-                  <div>• Động cơ, IC, bộ sạc BH 12 tháng. Bình BH 12 tháng, phù 09 tháng.</div>
-                </td>
-                <td>
-                  <div class="italic">
-                    <strong>Lần sạc đầu tiên:</strong> Sau khi sạc đầy (đèn xanh), rút sạc đợi 20 phút, cắm lại sạc tiếp khoảng 1 tiếng.
-                  </div>
-                  <div class="italic" style="margin-top: 2px;">
-                    <strong>Trong quá trình sử dụng:</strong><br />
-                    + Để xe khoảng 30 phút cho ắc quy nguội rồi mới sạc.<br />
-                    + Sạc đầy mới sử dụng. Hạn chế cạn ắc quy và sạc nhiều lần/ngày.<br />
-                    + Nếu không sử dụng xe, mỗi tuần nên sạc 1 lần.
-                  </div>
-                  <div class="bold text-center" style="margin-top: 2px; font-size: 8px;">
-                    ẮC QUY XUỐNG CẤP THEO THỜI GIAN, HÃY SỬ DỤNG ĐÚNG CÁCH ĐỂ DÙNG ĐƯỢC LÂU HƠN.
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="bold">III. Thoả thuận và thống nhất giữa hai bên:</div>
-                  <div>* Giá chưa gồm phí trước bạ, phí bấm biển số & dịch vụ (với xe máy điện).</div>
-                  <div>* Dịch vụ bấm biển số (không bao bảo hiểm và phí kẹp biển).</div>
-                  <div>* Quà tặng: NÓN BẢO HIỂM. * Phụ kiện theo xe: Bộ sạc.</div>
-                </td>
-                <td>
-                  <div class="bold">IV. Điều khoản chung:</div>
-                  <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, đủ phụ tùng.</div>
-                  <div>* Bên B đã được hướng dẫn sử dụng, bảo hành, lái xe an toàn, nhận đủ quà.</div>
-                  <div>* Biên nhận lập thành 02 bản có giá trị như nhau, mỗi bên giữ 1 bản.</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div style="font-size: 8px; line-height: 1.1;">
-            <div class="bold">* LƯU Ý:</div>
-            <div>• Luôn đội nón bảo hiểm khi tham gia giao thông (kể cả xe đạp điện).</div>
-            <div>• Những phần hao mòn trong quá trình sử dụng không bảo hành. Không BH xe thay đổi kết cấu điện.</div>
-            <div>• Bảo hành phải cho tháo xe và đem xe đến cửa hàng (Tận nơi tính phí 100k - 200k/lần).</div>
-            <div>• Phí cứu hộ tháng 1: Miễn phí lỗi NSX (1-10km: 100k; 10-15km: 150k; >20km H.Giồng Riềng: 200k).</div>
-            <div>• <strong>ĐẶC BIỆT LƯU Ý:</strong> Ắc quy phải sạc thường xuyên. Mất nguồn/tuột áp sẽ từ chối bảo hành.</div>
-            <div>• <strong>KHÁCH HÀNG ĐỔI XE:</strong> Trong 12h bù 10% | Trong 3 ngày bù 20% | Trong 30 ngày bù 30%. Xe đã xuất hóa đơn/thuế trước bạ bù lỗ 30%.</div>
-          </div>
-
-          <div class="text-right italic" style="font-size: 8px; margin-top: 2px;">
-            Tôi (bên B) hoàn toàn đồng ý với những thoả thuận trên.
-          </div>
-
-          <table style="margin-top: 4px; text-align: center; font-size: 9.5px;">
-            <tbody>
-              <tr>
-                <td style="width: 50%;">
-                  <strong>Bên bán A</strong><br /><i style="font-size: 8px;">(Ký tên và đóng dấu)</i>
-                </td>
-                <td style="width: 50%;">
-                  <strong>Bên mua B</strong><br /><i style="font-size: 8px;">(Ký tên và ghi rõ họ tên)</i>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- TIÊU ĐỀ -->
+        <div class="text-center" style="margin: 12px 0 8px 0;">
+          <div class="bold" style="font-size: 16pt;">BIÊN NHẬN</div>
+          <div class="bold" style="font-size: 13pt;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
         </div>
 
-        <!-- CỘT PHẢI: BẢNG SỔ BẢO DƯỠNG XE -->
-        <div class="col-right">
-          <div class="bold text-center" style="font-size: 11px; margin-bottom: 2px;">SỔ BẢO DƯỠNG ĐỊNH KỲ XE ĐIỆN</div>
-          <table class="maint-table">
-            <thead>
-              <tr>
-                <th style="width: 6%;" rowspan="2">STT</th>
-                <th style="width: 34%;" rowspan="2">Nội dung công việc</th>
-                <th colspan="5">Cấp bảo dưỡng</th>
-                <th style="width: 15%;" rowspan="2">Kết quả</th>
-                <th style="width: 25%;" rowspan="2">Chú thích</th>
-              </tr>
-              <tr>
-                <th style="width: 4%;">L1</th>
-                <th style="width: 4%;">L2</th>
-                <th style="width: 4%;">L3</th>
-                <th style="width: 4%;">L4</th>
-                <th style="width: 4%;">L5</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>1</td><td class="left">Hệ thống phanh</td><td>KT/ĐC</td><td>TT/ĐC</td><td>KT/ĐC</td><td>TT/ĐC</td><td>BT/ĐC</td><td></td><td class="left" rowspan="20" style="vertical-align: top; font-size: 7.5px;">
-                <strong>Chú thích:</strong> Khoanh tròn hạng mục đã thực hiện.<br /><br />
-                <strong>BT:</strong> Bôi trơn<br />
-                <strong>KT:</strong> Kiểm tra<br />
-                <strong>ĐC:</strong> Điều chỉnh<br />
-                <strong>TT:</strong> Thay thế<br /><br />
-                <strong>Thời gian BD:</strong><br />
-                • L1: 300km / 1 tháng<br />
-                • L2: 2500km / 3 tháng<br />
-                • L3: 5000km / 6 tháng<br />
-                • L4: 7500km / 9 tháng<br />
-                • L5: 10000km / 12 tháng<br /><br />
-                <i>(Tùy điều kiện nào đến trước)</i>
-              </td></tr>
-              <tr><td>2</td><td class="left">Kiểm tra tay ga</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>3</td><td class="left">Hệ thống chống trộm</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>4</td><td class="left">Kiểm tra động cơ</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>5</td><td class="left">Hệ thống chiếu sáng</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>6</td><td class="left">Càng trước, sau</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>7</td><td class="left">Kiểm tra sạc</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>8</td><td class="left">Chân chống nghiêng/giữa</td><td>KT</td><td>KT/BT</td><td>KT</td><td>KT/BT</td><td>KT/BT</td><td></td></tr>
-              <tr><td>9</td><td class="left">Giảm xóc (trước, sau)</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>10</td><td class="left">Dây nối ắc quy</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>11</td><td class="left">Kiểm tra còi</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>12</td><td class="left">Điện áp Ắc quy</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>13</td><td class="left">Loại bỏ tiếng ồn lạ</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td></td></tr>
-              <tr><td>14</td><td class="left">Áp suất lốp</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td>KT/ĐC</td><td></td></tr>
-              <tr><td>15</td><td class="left">Hệ thống dây điện</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>16</td><td class="left">Cố định ốc vít</td><td>ĐC</td><td>ĐC</td><td>ĐC</td><td>ĐC</td><td>ĐC</td><td></td></tr>
-              <tr><td>17</td><td class="left">Bôi trơn xe</td><td></td><td></td><td>BT</td><td></td><td>BT</td><td></td></tr>
-              <tr><td>18</td><td class="left">Cơ cấu mở khoá yên</td><td>KT</td><td>KT</td><td>KT</td><td>KT</td><td>KT/BT</td><td></td></tr>
-              <tr><td>19</td><td class="left">Kiểm tra dầu phanh</td><td>KT</td><td>KT</td><td>TT</td><td>KT</td><td>KT</td><td></td></tr>
-              <tr><td>20</td><td class="left">Kiểm tra cổ phốt</td><td>KT</td><td>KT</td><td>KT/TT</td><td>KT</td><td>KT/BT</td><td></td></tr>
-            </tbody>
-          </table>
+        <!-- THÔNG TIN BÊN A & BÊN B -->
+        <div class="info-row"><strong>I. Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
+        <div class="info-row" style="font-size: 11pt;">
+          Địa chỉ: Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang | Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang
         </div>
+
+        <div class="info-row" style="margin-top: 6px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
+        <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
+        <div class="info-row">Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
+        <div class="info-row">CCCD số: ............................................ Ngày cấp: ......................... Nơi cấp: Cục Cảnh Sát.</div>
+        <div class="info-row">
+          Thông Tin Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Màu xe: <strong>${mauXe}</strong>
+        </div>
+        <div class="info-row">
+          Ngân Hàng Vay: ............................ Số tiền vay: ............................ Giá xe: <strong>${giaXe}</strong>
+        </div>
+        <div class="info-row">
+          Số tiền khách đặt cọc: ............................ Thu Xe cũ: ............................ Số Vin (xe cũ): ............................
+        </div>
+
+        <div style="margin: 6px 0 4px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
+
+        <!-- BẢNG ĐIỀU KHOẢN -->
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;" class="text-center">I. ĐIỀU KHOẢN VỀ BẢO HÀNH</th>
+              <th style="width: 50%;" class="text-center">II. HƯỚNG DẪN SỬ DỤNG ẮC QUY</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="bold">YADEA</div>
+                <div>• Động cơ, IC, bộ sạc BH 24 tháng. Bình BH 24 tháng (lỗi 1 bình đổi cả bộ trong 18 tháng, lỗi bình nào đổi bình đó 6 tháng còn lại hoặc 20.000km).</div>
+                <div>• Động cơ, IC, bộ sạc BH 36 tháng. Pin BH 36 tháng (hoặc 30.000km).</div>
+                <div>• Động cơ, IC, bộ sạc BH 24 tháng. Bình BH 12 tháng (lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó 3 tháng còn lại).</div>
+                <div class="bold" style="margin-top: 4px;">XE HÃNG KHÁC (JP Motor, Detech, Victoria,…)</div>
+                <div>• Bình BH 12 tháng, phù 06 tháng.</div>
+                <div>• Động cơ, IC, bộ sạc BH 12 tháng. Bình BH 12 tháng, phù 09 tháng.</div>
+              </td>
+              <td>
+                <div class="italic">
+                  <strong>Lần sạc đầu tiên:</strong> Sau khi sạc đầy (đèn xanh), rút sạc đợi 20 phút, cắm lại sạc tiếp khoảng 1 tiếng.
+                </div>
+                <div class="italic" style="margin-top: 4px;">
+                  <strong>Trong quá trình sử dụng:</strong><br />
+                  + Để xe khoảng 30 phút cho ắc quy nguội rồi mới sạc.<br />
+                  + Sạc đầy mới sử dụng. Hạn chế cạn ắc quy và sạc nhiều lần/ngày.<br />
+                  + Nếu không sử dụng xe, mỗi tuần nên sạc 1 lần.
+                </div>
+                <div class="bold text-center" style="margin-top: 6px; font-size: 10pt;">
+                  ẮC QUY XUỐNG CẤP THEO THỜI GIAN, HÃY SỬ DỤNG ĐÚNG CÁCH ĐỂ DÙNG ĐƯỢC LÂU HƠN.
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="bold">III. Thoả thuận và thống nhất giữa hai bên:</div>
+                <div>* Giá chưa gồm phí trước bạ, phí bấm biển số & dịch vụ (với xe máy điện).</div>
+                <div>* Dịch vụ bấm biển số (không bao bảo hiểm và phí kẹp biển).</div>
+                <div>* Quà tặng: NÓN BẢO HIỂM. * Phụ kiện theo xe: Bộ sạc.</div>
+              </td>
+              <td>
+                <div class="bold">IV. Điều khoản chung:</div>
+                <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, đủ phụ tùng.</div>
+                <div>* Bên B đã được hướng dẫn sử dụng, bảo hành, lái xe an toàn, nhận đủ quà.</div>
+                <div>* Biên nhận lập thành 02 bản có giá trị như nhau, mỗi bên giữ 1 bản.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- LƯU Ý -->
+        <div style="font-size: 10pt; line-height: 1.3; margin-top: 6px;">
+          <div class="bold">* LƯU Ý:</div>
+          <div>• Luôn đội nón bảo hiểm khi tham gia giao thông (kể cả xe đạp điện).</div>
+          <div>• Những phần hao mòn trong quá trình sử dụng không bảo hành. Không BH xe thay đổi kết cấu điện.</div>
+          <div>• Bảo hành phải cho tháo xe và đem xe đến cửa hàng (Tận nơi tính phí 100k - 200k/lần).</div>
+          <div>• Phí cứu hộ tháng 1: Miễn phí lỗi NSX (1-10km: 100k; 10-15km: 150k; >20km H.Giồng Riềng: 200k).</div>
+          <div>• <strong>ĐẶC BIỆT LƯU Ý:</strong> Ắc quy phải sạc thường xuyên. Mất nguồn/tuột áp sẽ từ chối bảo hành.</div>
+          <div>• <strong>KHÁCH HÀNG ĐỔI XE:</strong> Trong 12h bù 10% | Trong 3 ngày bù 20% | Trong 30 ngày bù 30%. Xe đã xuất hóa đơn/thuế trước bạ bù lỗ 30%.</div>
+        </div>
+
+        <div class="text-right italic" style="font-size: 10pt; margin-top: 8px;">
+          Tôi (bên B) hoàn toàn đồng ý với những thoả thuận trên.
+        </div>
+
+        <!-- CHỮ KÝ -->
+        <table style="margin-top: 15px; text-align: center; font-size: 12pt;">
+          <tbody>
+            <tr>
+              <td style="width: 50%;">
+                <strong>Bên bán A</strong><br /><i style="font-size: 10pt;">(Ký tên và đóng dấu)</i>
+              </td>
+              <td style="width: 50%;">
+                <strong>Bên mua B</strong><br /><i style="font-size: 10pt;">(Ký tên và ghi rõ họ tên)</i>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <script>
