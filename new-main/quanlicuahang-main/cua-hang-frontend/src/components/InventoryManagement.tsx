@@ -41,7 +41,7 @@ import { logActivity } from '../utils/logger';
 import type { SystemAccount, Customer } from '../App';
 
 const { Text } = Typography;
-const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedienthanhtuoi.vercel.app/api';
+const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedientungphuong.vercel.app/api';
 
 export interface VehicleStockItem {
   id?: number;
