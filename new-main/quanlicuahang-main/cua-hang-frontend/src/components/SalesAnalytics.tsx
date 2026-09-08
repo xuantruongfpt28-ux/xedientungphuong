@@ -13,14 +13,12 @@ interface SalesAnalyticsProps {
 
 // Hàm chuẩn hoá tên 4 chi nhánh
 const normalizeBranchName = (rawBranch?: string): string => {
-  if (!rawBranch) return 'Chợ Mới';
+  if (!rawBranch) return 'Chi nhánh 1';
   const str = rawBranch.trim().toLowerCase();
-  if (str.includes('lấp vò') || str.includes('lap vo')) return 'Lấp Vò';
-  if (str.includes('chợ mới') || str.includes('cho moi')) return 'Chợ Mới';
-  if (str.includes('mỹ luông - cn 3') || str.includes('mỹ luông 3') || str.includes('cn 3') || str.includes('cn3')) return 'Mỹ Luông 3';
-  if (str.includes('mỹ luông - cn 4') || str.includes('mỹ luông 4') || str.includes('cn 4') || str.includes('cn4')) return 'Mỹ Luông 4';
-  if (str.includes('mỹ luông') || str.includes('my luong')) return 'Mỹ Luông 3';
-  return rawBranch.trim();
+  if (str.includes('2') || str.includes('cn2') || str.includes('chi nhánh 2')) {
+    return 'Chi nhánh 2';
+  }
+  return 'Chi nhánh 1';
 };
 
 export const SalesAnalytics = ({ customers, brandOptions, parseDateDetails }: SalesAnalyticsProps) => {
@@ -62,7 +60,7 @@ export const SalesAnalytics = ({ customers, brandOptions, parseDateDetails }: Sa
 
     // Khởi tạo 4 chi nhánh
     const branchMap = new Map<string, { count: number; revenue: number }>();
-    ['Chợ Mới', 'Lấp Vò', 'Mỹ Luông 3', 'Mỹ Luông 4'].forEach((b) => branchMap.set(b, { count: 0, revenue: 0 }));
+    ['Chi nhánh 1', 'Chi nhánh 2'].forEach((b) => branchMap.set(b, { count: 0, revenue: 0 }));
 
     filtered.forEach((item) => {
       const branch = normalizeBranchName(item.branchName || item.chi_nhanh);
@@ -131,10 +129,8 @@ export const SalesAnalytics = ({ customers, brandOptions, parseDateDetails }: Sa
               style={{ width: '100%' }}
               options={[
                 { label: 'Tất cả chi nhánh', value: 'all' },
-                { label: 'Chi nhánh Chợ Mới', value: 'Chợ Mới' },
-                { label: 'Chi nhánh Lấp Vò', value: 'Lấp Vò' },
-                { label: 'Chi nhánh Mỹ Luông 3', value: 'Mỹ Luông 3' },
-                { label: 'Chi nhánh Mỹ Luông 4', value: 'Mỹ Luông 4' },
+                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
+                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
               ]}
             />
           </Col>
