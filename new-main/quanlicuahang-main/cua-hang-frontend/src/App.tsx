@@ -1135,7 +1135,7 @@ export default function App() {
               <ShopOutlined />
             </div>
             <Title level={3} style={{ margin: 0, color: '#1f1f1f', fontWeight: 700 }}>
-              XE ĐIỆN TÙNG PHƯỢNG
+              XE ĐIỆN THANH TƯƠI
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
               Hệ thống Quản lý Bán xe & In Hợp đồng
@@ -1149,7 +1149,7 @@ export default function App() {
             >
               <Input
                 prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
-                placeholder="Tài khoản (admin / chomoi / lapvo / myluong3 / myluong4)"
+                placeholder="Tài khoản (admin / chinhanh1 / chinhanh2...)"
                 style={{ borderRadius: 8 }}
               />
             </Form.Item>
@@ -1195,12 +1195,6 @@ export default function App() {
               color: '#595959',
             }}
           >
-            <div><strong>Danh sách tài khoản hệ thống:</strong></div>
-            <div>• Ban Quản Trị: <Text code>admin</Text></div>
-            <div>• Chi nhánh Chợ Mới: <Text code>chomoi</Text></div>
-            <div>• Chi nhánh Lấp Vò: <Text code>lapvo</Text></div>
-            <div>• Chi nhánh Mỹ Luông 3: <Text code>myluong3</Text></div>
-            <div>• Chi nhánh Mỹ Luông 4: <Text code>myluong4</Text></div>
           </div>
         </Card>
       </div>
@@ -1325,7 +1319,7 @@ export default function App() {
         >
           <div>
             <Title level={3} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '18px' : '22px', color: '#1f1f1f' }}>
-              XE ĐIỆN TÙNG PHƯỢNG
+              XE ĐIỆN THANH TƯƠI
             </Title>
             <Space wrap style={{ marginTop: 4 }}>
               <Text type="secondary" style={{ fontSize: '13px' }}>
@@ -1397,7 +1391,7 @@ export default function App() {
         title={
           <Space>
             <SafetyCertificateOutlined style={{ color: '#fa8c16' }} />
-            <span>Quản Lý Mật Khẩu 5 Tài Khoản (Đồng Bộ Cloud)</span>
+            <span>Quản Lý Mật Khẩu Tài Khoản (Đồng Bộ Cloud)</span>
           </Space>
         }
         open={isPasswordModalOpen}
