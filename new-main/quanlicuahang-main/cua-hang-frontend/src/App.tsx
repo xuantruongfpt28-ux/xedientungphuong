@@ -264,14 +264,18 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
           <tbody>
             <tr>
               <td style="width: 50%; vertical-align: top; text-align: center;">
-                <strong style="font-size: 11.5px;">CÔNG TY TNHH XE ĐIỆN THANH TƯƠI</strong><br />
-                <span style="font-size: 10px;">${headerAddress}</span><br />
-                <span style="font-size: 10px;">ĐT: 0939.30.90.91</span>
+                <strong style="font-size: 11.5px;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
+                <div class="branch-info">
+                <strong>CN Xe Điện Tổng Hợp:</strong><br>
+                102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0866.979.841)<br>
+                <strong>CN2 Xe Điện Yadea và Vinfast:</strong><br>
+                41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
+                </div>
               </td>
               <td style="width: 50%; vertical-align: top; text-align: center;">
                 <strong style="font-size: 11.5px;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
                 <strong style="font-size: 11px;">Độc lập - Tự do - Hạnh phúc</strong><br />
-                <i style="font-size: 10px;">..., Ngày ${day} Tháng ${month} Năm ${year}</i>
+                <i style="font-size: 10px;">An Giang, Ngày ${day} Tháng ${month} Năm ${year}</i>
               </td>
             </tr>
           </tbody>
@@ -284,13 +288,13 @@ const executePrintContract = (customer: Customer, selectedBranch: string = 'Chi 
 
         <div><strong>${sellerTitle}</strong></div>
         <div>${bankAccount}</div>
-        <div>Điện thoại liên hệ : 0939.30.90.91</div>
-        <div>CN1: Chi nhánh 1</div>
-        <div>CN2: Chi nhánh 2</div>
+        <div>Địa Chỉ:
+        <div>Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)</div>
+        <div>Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941) </div>
 
         <div style="margin-top: 3px;"><strong>Bên B ( Bên mua xe):</strong></div>
         <div>
-          Họ và tên: <strong>${hoTen || '...................................................'}</strong>
+          Họ và tên: <strong>${hoTen || '......................................................................................................'}</strong>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           Điện thoại: <strong>${dienThoai || '.........................'}</strong>
         </div>
