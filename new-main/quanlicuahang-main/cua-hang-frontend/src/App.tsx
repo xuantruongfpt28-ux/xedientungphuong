@@ -1138,7 +1138,7 @@ export default function App() {
               XE ĐIỆN TÙNG PHƯỢNG
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
-              Hệ thống Quản lý Bán xe & In Hợp đồng
+              Hệ thống Quản   lý Bán xe & In Hợp đồng
             </Text>
           </div>
 
@@ -1319,7 +1319,7 @@ export default function App() {
         >
           <div>
             <Title level={3} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '18px' : '22px', color: '#1f1f1f' }}>
-              XE ĐIỆN THANH TƯƠI
+              XE ĐIỆN TÙNG PHƯỢNG - HỆ THỐNG QUẢN LÝ BÁN XE & IN HỢP ĐỒNG
             </Title>
             <Space wrap style={{ marginTop: 4 }}>
               <Text type="secondary" style={{ fontSize: '13px' }}>
