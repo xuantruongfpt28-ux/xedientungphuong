@@ -21,17 +21,17 @@ import {
   Alert,
 } from 'antd';
 import {
-  InboxOutlined,
+  
   SwapOutlined,
   PlusOutlined,
   ReloadOutlined,
-  HistoryOutlined,
+  
   ShopOutlined,
   CarOutlined,
   CheckCircleOutlined,
   FileExcelOutlined,
   DownloadOutlined,
-  UploadOutlined,
+  
   DeleteOutlined,
   BarcodeOutlined,
   CheckSquareOutlined,
@@ -105,7 +105,7 @@ const normalizeBranchName = (rawBranch?: string): string => {
 
 export const InventoryManagement = ({ currentUser, customers = [] }: InventoryManagementProps) => {
   const [vehicleList, setVehicleList] = useState<VehicleStockItem[]>([]);
-  const [logList, setLogList] = useState<InventoryLogItem[]>([]);
+  const [, setLogList] = useState<InventoryLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
@@ -945,7 +945,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       key: 'model',
                       render: (_, record) => (
                         <Space direction="vertical" size={0}>
-                          <Text bold>{record.brand} {record.model}</Text>
+                          <Text strong>{record.brand} {record.model}</Text>
                         </Space>
                       ),
                     },
