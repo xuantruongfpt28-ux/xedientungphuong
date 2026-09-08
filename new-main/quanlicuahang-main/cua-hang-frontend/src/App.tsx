@@ -532,16 +532,15 @@ export default function App() {
         return;
       }
 
-      message.success(`Đã đổi mật khẩu cho tài khoản [${selectedAccountToEdit.username}] thành công trên toàn hệ thống!`);
+      message.success(`Đã đổi mật khẩu cho tài khoản [${selectedAccountToEdit.username}] thành công!`);
       
       await logActivity({
         actionType: 'STATUS_CHANGE',
-        description: `Đổi mật khẩu tài khoản [${selectedAccountToEdit.username}] trên toàn hệ thống`,
+        description: `Đổi mật khẩu tài khoản [${selectedAccountToEdit.username}]`,
       });
 
       setIsPasswordModalOpen(false);
       passwordForm.resetFields();
-
       await fetchAccountsFromCloud();
 
       if (currentUser?.username === selectedAccountToEdit.username) {
@@ -671,19 +670,38 @@ export default function App() {
   const handleFormSubmit = async (values: any) => {
     setSubmitting(true);
 
-    // Map dữ liệu để phù hợp với cả tên cột Tiếng Việt lẫn Tiếng Anh trên Backend
+    // Chuẩn hóa và ép kiểu giá bán
+    const rawPrice = values.price;
+    let parsedPrice = 0;
+    if (typeof rawPrice === 'number') {
+      parsedPrice = Math.round(rawPrice);
+    } else if (typeof rawPrice === 'string') {
+      parsedPrice = parseInt(rawPrice.replace(/[^0-9]/g, ''), 10) || 0;
+    }
+
     const payload = {
-      ...values,
-      ho_ten: values.fullName,
-      dien_thoai: values.phone,
-      dia_chi: values.address,
-      mau: values.color,
-      gia_xe: values.price,
-      nhan_vien: values.staffName,
-      chi_nhanh: values.branchName,
-      so_khung: values.frameNumber,
-      so_pin: values.batteryNumber,
+      fullName: values.fullName?.trim() || '',
+      phone: values.phone?.trim() || '',
+      address: values.address?.trim() || '',
+      brand: values.brand?.trim() || '',
+      model: values.model?.trim() || '',
+      color: values.color?.trim() || '',
+      frameNumber: values.frameNumber?.trim() || '',
+      batteryNumber: values.batteryNumber?.trim() || '',
+      price: parsedPrice,
+      staffName: values.staffName?.trim() || '',
+      branchName: values.branchName || 'Chi nhánh 1',
       vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
+      // Tương thích tên cột Tiếng Việt trên Backend
+      ho_ten: values.fullName?.trim() || '',
+      dien_thoai: values.phone?.trim() || '',
+      dia_chi: values.address?.trim() || '',
+      mau: values.color?.trim() || '',
+      gia_xe: parsedPrice,
+      nhan_vien: values.staffName?.trim() || '',
+      chi_nhanh: values.branchName || 'Chi nhánh 1',
+      so_khung: values.frameNumber?.trim() || '',
+      so_pin: values.batteryNumber?.trim() || '',
     };
 
     try {
@@ -708,34 +726,38 @@ export default function App() {
         });
 
         if (frameNum) {
-          const { data: invItem } = await supabase
-            .from('Inventory')
-            .select('*')
-            .eq('frame_number', frameNum)
-            .maybeSingle();
-
-          if (invItem) {
-            await supabase
+          try {
+            const { data: invItem } = await supabase
               .from('Inventory')
-              .update({
-                status: 'sold',
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', invItem.id);
+              .select('*')
+              .eq('frame_number', frameNum)
+              .maybeSingle();
 
-            await supabase.from('InventoryLog').insert([
-              {
-                type: 'sale',
-                brand: invItem.brand,
-                model: invItem.model,
-                color: invItem.color,
-                quantity: 1,
-                from_branch: branch,
-                note: `Bán xe số khung: ${frameNum} cho khách ${values.fullName || 'Khách lẻ'}`,
-                created_by: currentUser?.fullName,
-              },
-            ]);
-            message.info(`Đã cập nhật xe số khung [${frameNum}] sang trạng thái ĐÃ BÁN.`);
+            if (invItem) {
+              await supabase
+                .from('Inventory')
+                .update({
+                  status: 'sold',
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', invItem.id);
+
+              await supabase.from('InventoryLog').insert([
+                {
+                  type: 'sale',
+                  brand: invItem.brand,
+                  model: invItem.model,
+                  color: invItem.color,
+                  quantity: 1,
+                  from_branch: branch,
+                  note: `Bán xe số khung: ${frameNum} cho khách ${values.fullName || 'Khách lẻ'}`,
+                  created_by: currentUser?.fullName,
+                },
+              ]);
+              message.info(`Đã cập nhật xe số khung [${frameNum}] sang trạng thái ĐÃ BÁN.`);
+            }
+          } catch (invErr) {
+            console.warn('Lỗi cập nhật tồn kho Supabase:', invErr);
           }
         }
       }
@@ -743,9 +765,13 @@ export default function App() {
       form.resetFields();
       fetchCustomers();
     } catch (error: any) {
-      console.error('Lỗi khi submit form:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Lưu dữ liệu thất bại!';
-      message.error(`Lỗi: ${errorMsg}`);
+      console.error('Lỗi chi tiết từ Server:', error.response?.data || error);
+      const errorDetail =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        'Internal Server Error';
+      message.error(`Lỗi Server (500): ${errorDetail}`);
     } finally {
       setSubmitting(false);
     }
@@ -1159,7 +1185,7 @@ export default function App() {
             >
               <Input.Password
                 prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-                placeholder="Mật khẩu (mặc định: 123456)"
+                placeholder="Mật khẩu"
                 style={{ borderRadius: 8 }}
               />
             </Form.Item>
@@ -1387,7 +1413,7 @@ export default function App() {
       >
         <div style={{ marginBottom: 16 }}>
           <Text type="secondary">
-            Mật khẩu được lưu trực tiếp trên Cloud. Khi Admin đổi mật khẩu tại đây, tất cả điện thoại và máy tính khác đều phải dùng mật khẩu mới để đăng nhập.
+            Mật khẩu được lưu trực tiếp trên Cloud. Khi Admin đổi mật khẩu tại đây, tất cả thiết bị khác đều phải dùng mật khẩu mới để đăng nhập.
           </Text>
         </div>
 
@@ -1415,7 +1441,7 @@ export default function App() {
               key: 'fullName',
             },
             {
-              title: 'MẬT KHỦA',
+              title: 'MẬT KHẨU',
               dataIndex: 'password',
               key: 'password',
               render: (pwd) => <Text copyable={{ text: pwd }}>••••••</Text>,
