@@ -341,7 +341,7 @@ const executePrintContract = (customer: Customer) => {
             <div class="info-row">
               Ngân Hàng Vay: ............................ Số Tiền Vay: ............................ Khách Nợ: ............................
             </div>
-            <div class="info-row italic" style="margin-left: 200px;">
+            <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
             </div>
             <div class="info-row">
