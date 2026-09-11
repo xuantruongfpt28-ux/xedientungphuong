@@ -327,9 +327,9 @@ const executePrintContract = (customer: Customer) => {
         <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
         <div class="info-row">Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
         <div class="info-row">CCCD số: ............................................ Ngày cấp: ......................... Nơi cấp: Cục Cảnh Sát.</div>
+        <div class="info-row">Email: .........................................................................................................</div>
         <div class="info-row">
-          Thông Tin Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Màu xe: <strong>${mauXe}</strong>
-        </div>
+          Thông Tin Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp;Màu xe: <strong>${mauXe}</strong> ;Số VIN: <strong>${soKhung}</strong> &nbsp;&nbsp;&nbsp;&nbsp; 
         <div class="info-row">
           Ngân Hàng Vay: ............................ Số tiền vay: ............................ Giá xe: <strong>${giaXe}</strong>
         </div>
