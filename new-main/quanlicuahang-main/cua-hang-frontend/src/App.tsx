@@ -389,6 +389,7 @@ const executePrintContract = (customer: Customer) => {
           <tbody>
             <tr>
               <td colspan="2">
+              <td style="width: 50%;">
                 <div class="bold">VINFAST</div>
                 <div>1. Xe (Động Cơ, IC, bảo hành 6 năm)</div>
                 <div>2. PIN bảo hành 8 năm</div>
