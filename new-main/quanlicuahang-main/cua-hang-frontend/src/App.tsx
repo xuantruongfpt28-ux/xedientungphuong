@@ -307,8 +307,8 @@ const executePrintContract = (customer: Customer) => {
                   </span>
                 </td>
                 <td style="width: 44%; vertical-align: top; text-align: center;">
-                  <strong style="font-size: 11.5pt;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
-                  <strong style="font-size: 10.5pt;">Độc lập - Tự do - Hạnh phúc</strong><br />
+                  <strong style="font-size: 10pt;">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
+                  <strong style="font-size: 9pt;">Độc lập - Tự do - Hạnh phúc</strong><br />
                   <i style="font-size: 9.5pt;">An Giang, Ngày ${day} Tháng ${month} Năm 20${year.slice(-2)}</i>
                 </td>
               </tr>
