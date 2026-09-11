@@ -396,6 +396,7 @@ const executePrintContract = (customer: Customer) => {
                 <div>3. Linh kiện điện bảo hành 1 năm</div>
                 <div>4. Các Chi Tiết Hao Mòn, Gãy, Bể, Hư Hỏng không do lỗi nhà sản xuất không thuộc trường hợp bảo hành.</div>
               </td>
+              <td style="width: 50%;"></td>
             </tr>
             <tr>
         <table class="grid-table" style="margin-top: 0;">
