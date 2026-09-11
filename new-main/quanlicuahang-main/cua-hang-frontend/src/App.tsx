@@ -334,7 +334,7 @@ const executePrintContract = (customer: Customer) => {
           Ngân Hàng Vay: ............................ Số tiền vay: ............................ Giá xe: <strong>${giaXe}</strong>
         </div>
         <div class="info-row">
-          Số tiền khách đặt cọc: ............................ Thu Xe cũ: ............................ Số Vin ( xe cũ ): ............................
+          Số tiền khách đặt cọc: ........................................................<br /> Thu Xe cũ (tên xe): ............................Màu:............................ Số Vin: ............................
         </div>
 
         <div style="margin: 8px 0 4px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
@@ -396,7 +396,7 @@ const executePrintContract = (customer: Customer) => {
                 <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, phụ tùng theo xe đầy đủ.</div>
                 <div>* Bên B đã được bên A hướng dẫn sử dụng xe, chế độ bảo hành và kỹ năng lái xe an toàn, nhận quà khuyến mãi đầy đủ... bên B đã đọc và xác nhận những nội dung trên.</div>
                 <div>* Biên nhận được lập thành 02 bản có giá trị như nhau, mỗi bên giữ 1 Bản.</div>
-              </td>
+              </td> 
             </tr>
           </tbody>
         </table>
@@ -413,7 +413,7 @@ const executePrintContract = (customer: Customer) => {
               <span style="text-decoration: underline;">Điều kiện: Miễn Phí Cứu Hộ Trong tháng thứ 1 (Nếu có lỗi kỹ thuật từ nhà sản xuất)</span><br />
               Từ 1km đến 10km : 100.000đ / 1 lần đi lại.<br />
               Từ 10km – 15km : 150.000/ 1 lần đi lại.<br />
-              Tận 20km (Trong Phạm vi Huyện Giồng Riềng cũ) : 200.000km
+              Trên 20km (Trong Phạm vi Huyện Giồng Riềng cũ) : 200.000km
             </li>
             <li><strong style="text-decoration: underline;">Mọi vấn đề phát sinh với xe trong quá trình sử dụng phải đem đến cửa hàng.</strong></li>
             <li><strong style="text-decoration: underline;">ĐẶC BIỆT LƯU Ý: ẮC-QUI PHẢI ĐƯỢC SẠC THƯỜNG XUYÊN. TRÁNH TRƯỜNG HỢP MẤT NGUỒN HOẶC TUỘT ÁP, ĐẠI LÝ TỪ CHỐI BẢO HÀNH.</strong></li>
