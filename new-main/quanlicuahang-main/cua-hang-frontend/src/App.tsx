@@ -216,13 +216,9 @@ const executePrintContract = (customer: Customer) => {
   const mauXe = customer.color || customer.mau || '';
   const soKhung = customer.frameNumber || customer.so_khung || '';
 
-  const formatMoney = (val?: any) => {
-    if (!val) return '';
-    const num = Number(String(val).replace(/[^0-9]/g, ''));
-    return isNaN(num) || num === 0 ? String(val) : num.toLocaleString('vi-VN') + ' VNĐ';
-  };
 
-  const giaXe = formatMoney(customer.price || customer.gia_xe);
+
+  
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
