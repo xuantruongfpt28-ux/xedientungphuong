@@ -356,8 +356,11 @@ const executePrintContract = (customer: Customer) => {
                 <div style="margin-top: 4px;">3. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 12 tháng (Cụ thể lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó trong 3 tháng còn lại)</div>
                 <div class="bold" style="margin-top: 6px;">XE HÃNG KHÁC (JP Motor, Detech, Victoria,...)</div>
                 <div>1. Bình bảo hành 12 tháng, phù 06 tháng (nên xem hướng dẫn sử dụng ắc quy).</div>
-                <div>2. Động cơ, IC, bộ sạc bảo hành 12 tháng.</div>
-                <div>3. Bình bảo hành 12 tháng, phù 09 tháng (nên xem hướng dẫn sử dụng ắc quy).</div>
+                <div>2. Bình bảo hành 12 tháng, phù 09 tháng (nên xem hướng dẫn sử dụng ắc quy).</div><br />
+                <div>3. Bình bảo hành 24 tháng.</div>
+                <div>4. Động cơ:……… Tháng.</div>
+                <div>5. IC:…………….. Tháng.</div>
+                <div>6.  Bộ Sạc:………... Tháng.</div>
               </td>
               <td>
                 <div class="italic">
@@ -381,6 +384,19 @@ const executePrintContract = (customer: Customer) => {
       <!-- TRANG 2: BẮT ĐẦU TỪ MỤC III, IV VÀ LƯU Ý + CHỮ KÝ -->
       <div class="page page-break">
         <!-- BẢNG MỤC III VÀ MỤC IV -->
+        <!-- BẢNG ĐIỀU KHOẢN VINFAST VÀ CÁC THỎA THUẬN/ĐIỀU KHOẢN CHUNG -->
+        <table class="grid-table" style="margin-top: 0;">
+          <tbody>
+            <tr>
+              <td colspan="2">
+                <div class="bold">VINFAST</div>
+                <div>1. Xe (Động Cơ, IC, bảo hành 6 năm)</div>
+                <div>2. PIN bảo hành 8 năm</div>
+                <div>3. Linh kiện điện bảo hành 1 năm</div>
+                <div>4. Các Chi Tiết Hao Mòn, Gãy, Bể, Hư Hỏng không do lỗi nhà sản xuất không thuộc trường hợp bảo hành.</div>
+              </td>
+            </tr>
+            <tr>
         <table class="grid-table" style="margin-top: 0;">
           <tbody>
             <tr>
