@@ -1,184 +1,227 @@
-interface CustomerDetailModalProps {
-  open?: boolean;
-  isOpen?: boolean;
-  onClose: () => void;
-  customer: any;
+import React from 'react';
+
+// Interface kiểu dữ liệu Khách hàng
+export interface Customer {
+  id: number;
+  fullName: string;
+  phone?: string | null;
+  address?: string | null;
+  vehicleName?: string | null;
+  color?: string | null;
+  price?: number | null;
+  prepaidAmount?: number | null;
+  prepaid_amount?: number | null;
+  so_tien_tra_truoc?: number | null;
+  debtAmount?: number | null;
+  installmentBank?: string | null;
+  staffName?: string | null;
+  branchName?: string | null;
+  frameNumber?: string | null;
+  batteryNumber?: string | null;
+  email?: string | null;
+  idCardNumber?: string | null;
+  idCardIssueDate?: string | null;
+  formTimestamp?: string | null;
+  note?: string | null;
+  imageUrl?: string | null;
 }
 
-export const CustomerDetailModal = ({
-  open,
+interface CustomerDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  customer: Customer | null;
+}
+
+export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
   isOpen,
   onClose,
   customer,
-}: CustomerDetailModalProps) => {
-  const isModalOpen = open ?? isOpen;
+}) => {
+  if (!isOpen || !customer) return null;
 
-  if (!isModalOpen || !customer) return null;
-
-  // Format tiền tệ VNĐ
-  const formatCurrency = (amount: any): string => {
-    if (amount === null || amount === undefined || amount === '' || isNaN(Number(amount))) return '0 VNĐ';
-    return Number(amount).toLocaleString('vi-VN') + ' VNĐ';
+  // 1. Format tiền tệ VNĐ
+  const formatMoney = (amount?: number | null) => {
+    if (amount === undefined || amount === null || isNaN(amount)) return '0 VNĐ';
+    return `${amount.toLocaleString('vi-VN')} VNĐ`;
   };
 
-  // Format ngày tháng
-  const formatDate = (dateString: any): string => {
-    if (!dateString) return '---';
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? String(dateString) : date.toLocaleDateString('vi-VN');
-  };
+  // 2. Tự động lấy Số tiền trả trước từ mọi biến có thể có
+  const actualPrepaid =
+    customer.prepaidAmount ?? customer.prepaid_amount ?? customer.so_tien_tra_truoc ?? 0;
 
-  // Lấy dữ liệu ghi chú từ các biến có thể xảy ra
-  const customerNote = customer.note || customer.notes || customer.ghiChu || customer['Ghi chú'];
+  // 3. Hàm làm sạch Tên Xe (Loại bỏ Email / Tên Ngân hàng dính vào tên xe)
+  const getCleanVehicleName = (rawName?: string | null) => {
+    if (!rawName) return '---';
+    let cleaned = rawName;
+    
+    // Loại bỏ Email nếu dính vào tên xe
+    if (customer.email && cleaned.includes(customer.email)) {
+      cleaned = cleaned.replace(customer.email, '');
+    }
+    // Loại bỏ Tên ngân hàng nếu dính ở cuối tên xe
+    if (customer.installmentBank && cleaned.endsWith(customer.installmentBank)) {
+      cleaned = cleaned.slice(0, -customer.installmentBank.length);
+    }
+    
+    return cleaned.trim() || '---';
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
+        
         {/* Header Modal */}
-        <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-lg font-bold text-gray-800">
-            Thông Tin Chi Tiết Khách Hàng #{customer.id || ''}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800">
+            Thông Tin Chi Tiết Khách Hàng #{customer.id}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none"
+            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl font-light focus:outline-none"
           >
-            ✕
+            &times;
           </button>
         </div>
 
-        {/* Nội dung Modal */}
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          {/* Họ và Tên */}
-          <div className="col-span-2 flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Họ và Tên:</span>
-            <span className="font-bold text-blue-600">{customer.fullName || customer.name || '---'}</span>
+        {/* Nội dung chi tiết */}
+        <div className="p-6 space-y-4 text-sm text-gray-700 max-h-[80vh] overflow-y-auto">
+          
+          {/* Hàng 1: Họ tên & CCCD */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Họ và Tên:</span>
+              <p className="font-bold text-blue-600 text-base">{customer.fullName || '---'}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">CCCD / CMND:</span>
+              <p className="font-medium">{customer.idCardNumber || '---'}</p>
+            </div>
           </div>
 
-          {/* Số Điện Thoại */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Điện Thoại:</span>
-            <span>{customer.phone || customer.phoneNumber || '---'}</span>
+          {/* Hàng 2: SĐT & Email */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Số Điện Thoại:</span>
+              <p className="font-medium">{customer.phone || '---'}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Email:</span>
+              <p className="font-medium">{customer.email || '---'}</p>
+            </div>
           </div>
 
-          {/* CCCD / CMND */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">CCCD / CMND:</span>
-            <span>{customer.idCardNumber || customer.cccd || customer.cmnd || '---'}</span>
+          {/* Hàng 3: Địa chỉ */}
+          <div>
+            <span className="text-gray-500">Địa Chỉ:</span>
+            <p className="font-medium">{customer.address || '---'}</p>
           </div>
 
-          {/* Email */}
-          <div className="col-span-2 flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Email:</span>
-            <span>{customer.email || '---'}</span>
+          {/* Hàng 4: Tên Xe */}
+          <div>
+            <span className="text-gray-500">Tên Xe / Hãng:</span>
+            <p className="font-bold text-gray-900 text-base">
+              {getCleanVehicleName(customer.vehicleName)}
+            </p>
           </div>
 
-          {/* Địa Chỉ */}
-          <div className="col-span-2 flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Địa Chỉ:</span>
-            <span>{customer.address || '---'}</span>
+          {/* Hàng 5: Màu xe & Thời gian mua */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Màu Xe:</span>
+              <p className="mt-1">
+                <span className="inline-block bg-blue-50 text-blue-600 px-3 py-1 rounded-md text-xs font-semibold">
+                  {customer.color || '---'}
+                </span>
+              </p>
+            </div>
+            <div>
+              <span className="text-gray-500">Thời Gian Mua:</span>
+              <p className="font-medium mt-1">{customer.formTimestamp || '---'}</p>
+            </div>
           </div>
 
-          {/* Tên Xe / Hãng */}
-          <div className="col-span-2 flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Tên Xe / Hãng:</span>
-            <span className="font-semibold">{customer.carName || customer.bikeName || customer.vehicleName || '---'}</span>
+          {/* Hàng 6: Số khung & Số Acquy */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Số Khung (VIN):</span>
+              <p className="mt-1">
+                <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded text-xs font-mono font-medium border border-orange-200">
+                  {customer.frameNumber || '---'}
+                </span>
+              </p>
+            </div>
+            <div>
+              <span className="text-gray-500">Số Acquy / Pin:</span>
+              <p className="mt-1">
+                <span className="bg-green-50 text-green-600 px-2 py-1 rounded text-xs font-mono font-medium border border-green-200">
+                  {customer.batteryNumber || '---'}
+                </span>
+              </p>
+            </div>
           </div>
 
-          {/* Màu Xe */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Màu Xe:</span>
-            <span className="rounded bg-blue-100 px-2 py-0.5 text-blue-700">
-              {customer.color || customer.carColor || '---'}
-            </span>
+          {/* Hàng 7: Giá bán & Số tiền trả trước */}
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div>
+              <span className="text-gray-500">Giá Bán:</span>
+              <p className="font-bold text-red-600 text-base">{formatMoney(customer.price)}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Số Tiền Trả Trước:</span>
+              <p className="font-bold text-teal-600 text-base">{formatMoney(actualPrepaid)}</p>
+            </div>
           </div>
 
-          {/* Thời Gian Mua */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Thời Gian Mua:</span>
-            <span>{formatDate(customer.purchaseDate || customer.buyDate || customer.created_at || customer.createdAt)}</span>
+          {/* Hàng 8: Số tiền còn nợ & Ngân hàng góp */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Số Tiền Còn Nợ:</span>
+              <p className="font-bold text-red-600">{formatMoney(customer.debtAmount)}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Ngân Hàng Góp:</span>
+              <p className="font-medium">{customer.installmentBank || '---'}</p>
+            </div>
           </div>
 
-          {/* Số Khung (VIN) */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Khung (VIN):</span>
-            <span className="rounded bg-orange-100 px-2 py-0.5 font-mono text-orange-700">
-              {customer.vinNumber || customer.frameNumber || customer.vin || '---'}
-            </span>
+          {/* Hàng 9: Nhân viên & Chi nhánh */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-500">Nhân Viên:</span>
+              <p className="font-medium">{customer.staffName || '---'}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Chi Nhánh Mua:</span>
+              <p className="mt-1">
+                <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-md text-xs font-medium">
+                  {customer.branchName || 'Chi nhánh 1'}
+                </span>
+              </p>
+            </div>
           </div>
 
-          {/* Số Acquy / Pin */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Acquy / Pin:</span>
-            <span className="rounded bg-green-100 px-2 py-0.5 font-mono text-green-700">
-              {customer.batteryNumber || customer.pinNumber || '---'}
-            </span>
+          <hr className="my-3 border-gray-200" />
+
+          {/* Hàng 10: Ghi chú */}
+          <div>
+            <span className="text-gray-500 block mb-1">Ghi Chú:</span>
+            <p className="italic text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 break-words">
+              {customer.note || 'Không có ghi chú'}
+            </p>
           </div>
 
-          {/* Giá Bán */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Giá Bán:</span>
-            <span className="font-bold text-red-500">
-              {formatCurrency(customer.price || customer.sellingPrice || customer.totalAmount)}
-            </span>
-          </div>
-
-          {/* Số Tiền Trả Trước (MỚI BỔ SUNG) */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Tiền Trả Trước:</span>
-            <span className="font-bold text-emerald-600">
-              {formatCurrency(customer.advanceAmount ?? customer.advance_amount ?? customer.depositAmount ?? customer['Số tiền trả trước'])}
-            </span>
-          </div>
-
-          {/* Số Tiền Còn Nợ */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Tiền Còn Nợ:</span>
-            <span className="font-bold text-red-600">
-              {formatCurrency(customer.debtAmount ?? customer.debt_amount ?? customer.remainingDebt)}
-            </span>
-          </div>
-
-          {/* Ngân Hàng Góp */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Ngân Hàng Góp:</span>
-            <span>{customer.installmentBank || customer.bankName || '---'}</span>
-          </div>
-
-          {/* Số Tiền Góp */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Số Tiền Góp:</span>
-            <span>
-              {formatCurrency(customer.installmentAmount || customer.installmentMoney || customer.monthlyAmount)}
-            </span>
-          </div>
-
-          {/* Chi Nhánh Mua */}
-          <div className="flex items-center">
-            <span className="w-36 font-semibold text-gray-600">Chi Nhánh Mua:</span>
-            <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-600">
-              {customer.branch || customer.branchName || '---'}
-            </span>
-          </div>
-
-          {/* Ghi Chú (Đã cập nhật hiển thị dữ liệu thực) */}
-          <div className="col-span-2 mt-2 flex items-start border-t pt-3">
-            <span className="w-36 font-semibold text-gray-600">Ghi Chú:</span>
-            <span className={`italic ${customerNote ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
-              {customerNote || 'Không có ghi chú'}
-            </span>
-          </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex justify-end border-t pt-3">
+        {/* Footer Modal */}
+        <div className="flex justify-end px-6 py-4 bg-gray-50 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="rounded-lg bg-blue-600 px-5 py-2 text-white transition hover:bg-blue-700"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
           >
             Đóng
           </button>
         </div>
+
       </div>
     </div>
   );
