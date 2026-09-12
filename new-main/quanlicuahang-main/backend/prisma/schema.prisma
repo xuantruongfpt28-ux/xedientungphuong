@@ -39,6 +39,8 @@ model Customer {
   email           String?  // Email
   idCardNumber    String?  // Căn cước công dân
   idCardIssueDate String?  // Ngày cấp CCCD
+  prepaidAmount Int?
+  note          String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
