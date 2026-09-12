@@ -86,7 +86,7 @@ export interface Customer {
   ngay_mua?: string;
   createdAt?: string;
   
-  // ➕ Các thuộc tính bổ sung
+  // Các thuộc tính bổ sung
   installmentBank?: string;
   debtAmount?: number | string;
   email?: string;
@@ -754,7 +754,6 @@ export default function App() {
       frameNumber: record.frameNumber || record.so_khung || '',
       batteryNumber: record.batteryNumber || record.so_pin || '',
       
-      // Gán dữ liệu thuộc tính mới vào Modal
       installmentBank: record.installmentBank || '',
       debtAmount: record.debtAmount ? Number(record.debtAmount) : 0,
       email: record.email || '',
@@ -797,14 +796,12 @@ export default function App() {
       branchName: values.branchName || 'Chi nhánh 1',
       vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
       
-      // Thuộc tính mới
       installmentBank: values.installmentBank?.trim() || '',
       debtAmount: parsedDebt,
       email: values.email?.trim() || '',
       idCardNumber: values.idCardNumber?.trim() || '',
       idCardIssueDate: values.idCardIssueDate?.trim() || '',
 
-      // Tương thích tên cột Tiếng Việt
       ho_ten: values.fullName?.trim() || '',
       dien_thoai: values.phone?.trim() || '',
       dia_chi: values.address?.trim() || '',
@@ -1179,8 +1176,6 @@ export default function App() {
       width: 130,
       align: 'right',
     },
-    
-    // ➕ Thêm cột Ngân hàng góp
     {
       title: 'NGÂN HÀNG GÓP',
       dataIndex: 'installmentBank',
@@ -1198,8 +1193,6 @@ export default function App() {
       width: 140,
       align: 'center',
     },
-
-    // ➕ Thêm cột Số tiền còn nợ
     {
       title: 'SỐ TIỀN CÒN NỢ',
       dataIndex: 'debtAmount',
@@ -1218,7 +1211,6 @@ export default function App() {
       width: 130,
       align: 'right',
     },
-
     {
       title: 'NHÂN VIÊN',
       dataIndex: 'staffName',
