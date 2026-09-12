@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
+import { CustomerDetailModal } from './components/CustomerDetailModal';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import {
@@ -85,7 +86,7 @@ export interface Customer {
   ngay_mua?: string;
   createdAt?: string;
   
-  // ➕ Các thuộc tính mới
+  // ➕ Các thuộc tính bổ sung
   installmentBank?: string;
   debtAmount?: number | string;
   email?: string;
@@ -521,6 +522,10 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // State quản lý Modal Xem Chi Tiết Khách Hàng
+  const [selectedCustomerDetail, setSelectedCustomerDetail] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [exportForm] = Form.useForm();
@@ -1090,7 +1095,11 @@ export default function App() {
       render: (_: any, record: Customer) => {
         const phoneVal = record.phone || record.dien_thoai || '';
         return (
-          <a href={`tel:${phoneVal}`} style={{ color: '#1677ff', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          <a
+            href={`tel:${phoneVal}`}
+            style={{ color: '#1677ff', fontWeight: 500, whiteSpace: 'nowrap' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {phoneVal || '---'}
           </a>
         );
@@ -1248,7 +1257,7 @@ export default function App() {
       title: 'THAO TÁC',
       key: 'actions',
       render: (_: any, record: Customer) => (
-        <Space size="small">
+        <Space size="small" onClick={(e) => e.stopPropagation()}>
           <Button
             type="primary"
             size="small"
@@ -1413,6 +1422,13 @@ export default function App() {
             }}
             scroll={{ x: 2000 }}
             size="small"
+            onRow={(record) => ({
+              onClick: () => {
+                setSelectedCustomerDetail(record);
+                setIsDetailModalOpen(true);
+              },
+              style: { cursor: 'pointer' },
+            })}
           />
         </div>
       ),
@@ -1692,7 +1708,7 @@ export default function App() {
         </div>
       </Modal>
 
-      {/* Modal Thêm / Sửa */}
+      {/* Modal Thêm / Sửa Khách Hàng */}
       <Modal
         title={editingCustomer ? `Sửa thông tin #${editingCustomer.id}` : 'Thêm Mới Khách Hàng'}
         open={isModalOpen}
@@ -1713,7 +1729,6 @@ export default function App() {
             <Input placeholder="Nhập địa chỉ..." />
           </Form.Item>
 
-          {/* ➕ Các trường mới bổ sung vào Form */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <Form.Item name="idCardNumber" label="Căn cước công dân (CCCD)">
               <Input placeholder="Nhập số CCCD..." />
@@ -1834,7 +1849,13 @@ export default function App() {
           </div>
         </Form>
       </Modal>
+
+      {/* Modal Xem Chi Tiết Khách Hàng */}
+      <CustomerDetailModal
+        open={isDetailModalOpen}
+        customer={selectedCustomerDetail}
+        onClose={() => setIsDetailModalOpen(false)}
+      />
     </div>
   );
-  
 }
