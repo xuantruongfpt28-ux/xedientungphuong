@@ -1,15 +1,19 @@
 interface CustomerDetailModalProps {
-  isOpen: boolean;
+  open?: boolean;
+  isOpen?: boolean;
   onClose: () => void;
-  customer: any; // Hoặc định nghĩa type chi tiết nếu có
+  customer: any;
 }
 
 export const CustomerDetailModal = ({
+  open,
   isOpen,
   onClose,
   customer,
 }: CustomerDetailModalProps) => {
-  if (!isOpen || !customer) return null;
+  const isModalOpen = open ?? isOpen;
+
+  if (!isModalOpen || !customer) return null;
 
   // Helper format tiền tệ VNĐ
   const formatCurrency = (amount: any): string => {
@@ -54,10 +58,16 @@ export const CustomerDetailModal = ({
             <span>{customer.phone || customer.phoneNumber || '---'}</span>
           </div>
 
-          {/* CCCD / CMND - Đã sửa đúng key idCardNumber từ Supabase */}
+          {/* CCCD / CMND */}
           <div className="flex items-center">
             <span className="w-32 font-semibold text-gray-600">CCCD / CMND:</span>
             <span>{customer.idCardNumber || customer.cccd || customer.cmnd || '---'}</span>
+          </div>
+
+          {/* Email (MỚI THÊM) */}
+          <div className="col-span-2 flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Email:</span>
+            <span>{customer.email || '---'}</span>
           </div>
 
           {/* Địa Chỉ */}
@@ -110,6 +120,14 @@ export const CustomerDetailModal = ({
             </span>
           </div>
 
+          {/* Số Tiền Còn Nợ (MỚI THÊM) */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Số Tiền Còn Nợ:</span>
+            <span className="font-bold text-red-600">
+              {formatCurrency(customer.debtAmount ?? customer.debt_amount ?? customer.remainingDebt)}
+            </span>
+          </div>
+
           {/* Ngân Hàng Góp */}
           <div className="flex items-center">
             <span className="w-32 font-semibold text-gray-600">Ngân Hàng Góp:</span>
@@ -125,7 +143,7 @@ export const CustomerDetailModal = ({
           </div>
 
           {/* Chi Nhánh Mua */}
-          <div className="flex items-center">
+          <div className="col-span-2 flex items-center">
             <span className="w-32 font-semibold text-gray-600">Chi Nhánh Mua:</span>
             <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-600">
               {customer.branch || customer.branchName || '---'}
