@@ -21,17 +21,14 @@ import {
   Alert,
 } from 'antd';
 import {
-  
   SwapOutlined,
   PlusOutlined,
   ReloadOutlined,
-  
   ShopOutlined,
   CarOutlined,
   CheckCircleOutlined,
   FileExcelOutlined,
   DownloadOutlined,
-  
   DeleteOutlined,
   BarcodeOutlined,
   CheckSquareOutlined,
@@ -501,8 +498,35 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           return;
         }
 
-        setExcelPreviewData(formattedRows);
-        setIsExcelModalOpen(true);
+        // CẢNH BÁO TRÙNG SỐ KHUNG TRONG FILE EXCEL VỚI DANH SÁCH KHO HIỆN TẠI
+        const duplicateFramesInDb = formattedRows.filter((row) =>
+          vehicleList.some((item) => cleanFrameStr(item.frame_number) === cleanFrameStr(row.frame_number))
+        );
+
+        if (duplicateFramesInDb.length > 0) {
+          const duplicateListStr = duplicateFramesInDb.map((d) => d.frame_number).join(', ');
+          Modal.confirm({
+            title: '🚨 PHÁT HIỆN SỐ KHUNG TRÙNG LẶP!',
+            content: (
+              <div>
+                <p>Trong file Excel có <strong>{duplicateFramesInDb.length}</strong> xe trùng số khung với kho hiện tại:</p>
+                <div style={{ maxHeight: 150, overflowY: 'auto', background: '#fff2f0', padding: 8, borderRadius: 4, color: '#ff4d4f' }}>
+                  <strong>{duplicateListStr}</strong>
+                </div>
+                <p style={{ marginTop: 8 }}>Bạn có muốn xem trước và đè/cập nhật danh sách này không?</p>
+              </div>
+            ),
+            okText: 'Tiếp tục xem trước',
+            cancelText: 'Hủy nhập file',
+            onOk: () => {
+              setExcelPreviewData(formattedRows);
+              setIsExcelModalOpen(true);
+            },
+          });
+        } else {
+          setExcelPreviewData(formattedRows);
+          setIsExcelModalOpen(true);
+        }
       } catch {
         message.error('Định dạng file Excel không hợp lệ!');
       }
@@ -587,6 +611,38 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   };
 
   const handleImportSubmit = async (values: any) => {
+    const cleanInputVin = cleanFrameStr(values.frame_number);
+
+    // CẢNH BÁO TRÙNG SỐ KHUNG KHI NHẬP THỦ CÔNG
+    const existingInState = vehicleList.find(
+      (item) => cleanFrameStr(item.frame_number) === cleanInputVin
+    );
+
+    if (existingInState) {
+      Modal.confirm({
+        title: '🚨 CẢNH BÁO: SỐ KHUNG ĐÃ TỒN TẠI!',
+        content: (
+          <div>
+            <p>Số khung <strong>{(values.frame_number || '').toUpperCase()}</strong> đã có sẵn trong hệ thống:</p>
+            <ul>
+              <li><strong>Xe:</strong> {existingInState.brand} {existingInState.model}</li>
+              <li><strong>Chi nhánh:</strong> {existingInState.branch}</li>
+              <li><strong>Trạng thái:</strong> {existingInState.status === 'in_stock' ? 'Trong kho' : 'Đã bán'}</li>
+            </ul>
+            <p>Bạn có chắc chắn vẫn muốn ghi đè / tạo mới xe này không?</p>
+          </div>
+        ),
+        okText: 'Vẫn tiếp tục nhập',
+        cancelText: 'Hủy để kiểm tra',
+        onOk: () => processImportVehicle(values),
+      });
+      return;
+    }
+
+    await processImportVehicle(values);
+  };
+
+  const processImportVehicle = async (values: any) => {
     setSubmitting(true);
     const { branch, brand, model, color, frame_number, battery_number, note } = values;
     const targetBranch = normalizeBranchName(branch);
@@ -599,22 +655,31 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         .maybeSingle();
 
       if (existing) {
-        message.warning(`Số khung [${frame_number}] đã tồn tại trong hệ thống!`);
-        setSubmitting(false);
-        return;
+        await supabase
+          .from('Inventory')
+          .update({
+            branch: targetBranch,
+            brand: brand.trim(),
+            model: model.trim(),
+            color: color.trim(),
+            battery_number: (battery_number || '').trim(),
+            status: 'in_stock',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+      } else {
+        await supabase.from('Inventory').insert([
+          {
+            frame_number: frame_number.trim(),
+            battery_number: (battery_number || '').trim(),
+            branch: targetBranch,
+            brand: brand.trim(),
+            model: model.trim(),
+            color: color.trim(),
+            status: 'in_stock',
+          },
+        ]);
       }
-
-      await supabase.from('Inventory').insert([
-        {
-          frame_number: frame_number.trim(),
-          battery_number: (battery_number || '').trim(),
-          branch: targetBranch,
-          brand: brand.trim(),
-          model: model.trim(),
-          color: color.trim(),
-          status: 'in_stock',
-        },
-      ]);
 
       await supabase.from('InventoryLog').insert([
         {
