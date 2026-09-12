@@ -43,6 +43,16 @@ import type { SystemAccount, Customer } from '../App';
 const { Text } = Typography;
 const BASE_API_URL = import.meta.env.VITE_API_URL || 'https://xedientungphuong.vercel.app/api';
 
+// Danh sách 4 kho/chi nhánh chuẩn
+export const BRANCHES = [
+  'Chi nhánh 1',
+  'Chi nhánh 2',
+  'Kho chợ',
+  'Kho lầu 4',
+] as const;
+
+export type BranchName = (typeof BRANCHES)[number];
+
 export interface VehicleStockItem {
   id?: number;
   frame_number: string;
@@ -90,14 +100,37 @@ const cleanFrameStr = (str?: string): string => {
   return str.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().trim();
 };
 
-// Hàm chuẩn hóa tên chi nhánh về Chi nhánh 1 hoặc Chi nhánh 2
+// Hàm chuẩn hóa tên kho về 1 trong 4 kho chuẩn
 const normalizeBranchName = (rawBranch?: string): string => {
   if (!rawBranch) return 'Chi nhánh 1';
   const str = rawBranch.trim().toLowerCase();
+  
+  if (str.includes('chợ') || str.includes('cho') || str.includes('kho chợ') || str.includes('kho cho')) {
+    return 'Kho chợ';
+  }
+  if (str.includes('lầu 4') || str.includes('lau 4') || str.includes('l4') || str.includes('kho lầu 4')) {
+    return 'Kho lầu 4';
+  }
   if (str.includes('2') || str.includes('cn2') || str.includes('chi nhánh 2')) {
     return 'Chi nhánh 2';
   }
   return 'Chi nhánh 1';
+};
+
+// Hàm hỗ trợ lấy màu Badge tương ứng cho 4 kho
+const getBranchBadgeColor = (branchName: string) => {
+  switch (branchName) {
+    case 'Chi nhánh 1':
+      return 'blue';
+    case 'Chi nhánh 2':
+      return 'purple';
+    case 'Kho chợ':
+      return 'magenta';
+    case 'Kho lầu 4':
+      return 'cyan';
+    default:
+      return 'geekblue';
+  }
 };
 
 export const InventoryManagement = ({ currentUser, customers = [] }: InventoryManagementProps) => {
@@ -124,6 +157,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const [importForm] = Form.useForm();
   const [transferForm] = Form.useForm();
   const [batchTransferForm] = Form.useForm();
+
+  const branchOptions = BRANCHES.map((b) => ({ label: b, value: b }));
 
   const fetchData = async () => {
     setLoading(true);
@@ -322,7 +357,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
       await logActivity({
         actionType: 'DELETE',
-        description: `Xóa xe số khung [${item.frame_number}] (${item.brand} ${item.model}) tại chi nhánh [${item.branch}]`,
+        description: `Xóa xe số khung [${item.frame_number}] (${item.brand} ${item.model}) tại kho [${item.branch}]`,
         user: currentUser,
       });
 
@@ -415,7 +450,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
       const transferredFrames = selectedVehicles.map((v) => v.frame_number).join(', ');
       await logActivity({
         actionType: 'TRANSFER',
-        description: `Luân chuyển hàng loạt ${selectedVehicles.length} xe [${transferredFrames}] sang chi nhánh [${toBranch}]`,
+        description: `Luân chuyển hàng loạt ${selectedVehicles.length} xe [${transferredFrames}] sang [${toBranch}]`,
         user: currentUser,
       });
 
@@ -445,7 +480,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         'Ghi Chú': 'Lô xe mới nhập',
       },
       {
-        'Chi Nhánh': 'Chi nhánh 2',
+        'Chi Nhánh': 'Kho chợ',
         'Hãng Xe': 'Yadea',
         'Model Xe': 'OVA',
         'Màu Sắc': 'Vàng Cam Đất',
@@ -626,7 +661,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             <p>Số khung <strong>{(values.frame_number || '').toUpperCase()}</strong> đã có sẵn trong hệ thống:</p>
             <ul>
               <li><strong>Xe:</strong> {existingInState.brand} {existingInState.model}</li>
-              <li><strong>Chi nhánh:</strong> {existingInState.branch}</li>
+              <li><strong>Chi nhánh / Kho:</strong> {existingInState.branch}</li>
               <li><strong>Trạng thái:</strong> {existingInState.status === 'in_stock' ? 'Trong kho' : 'Đã bán'}</li>
             </ul>
             <p>Bạn có chắc chắn vẫn muốn ghi đè / tạo mới xe này không?</p>
@@ -696,7 +731,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
       await logActivity({
         actionType: 'IMPORT',
-        description: `Nhập xe mới thủ công: [${frame_number}] (${brand} ${model}, màu ${color}) vào chi nhánh [${targetBranch}]`,
+        description: `Nhập xe mới thủ công: [${frame_number}] (${brand} ${model}, màu ${color}) vào [${targetBranch}]`,
         user: currentUser,
       });
 
@@ -732,7 +767,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
       const fromBranch = normalizeBranchName(item.branch);
 
       if (fromBranch === targetBranch) {
-        message.warning('Chi nhánh nhận phải khác chi nhánh hiện tại của xe!');
+        message.warning('Kho / Chi nhánh nhận phải khác kho hiện tại của xe!');
         setSubmitting(false);
         return;
       }
@@ -831,9 +866,9 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         <Col xs={24} sm={8}>
           <Card bordered style={{ borderRadius: 8, backgroundColor: '#fff7e6', borderColor: '#ffd591' }}>
             <Statistic
-              title={<span style={{ color: '#d46b08', fontWeight: 600 }}>Chi Nhánh Đang Quản Lý</span>}
-              value={2}
-              suffix="shop"
+              title={<span style={{ color: '#d46b08', fontWeight: 600 }}>Chi Nhánh / Kho Đang Quản Lý</span>}
+              value={4}
+              suffix="kho/shop"
               prefix={<ShopOutlined style={{ color: '#fa8c16' }} />}
               valueStyle={{ color: '#fa8c16', fontWeight: 700 }}
             />
@@ -860,9 +895,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       onChange={setFilterBranch}
                       style={{ width: 180 }}
                       options={[
-                        { label: '🏪 Tất cả chi nhánh', value: 'all' },
-                        { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
-                        { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+                        { label: '🏪 Tất cả chi nhánh / kho', value: 'all' },
+                        ...branchOptions,
                       ]}
                     />
 
@@ -1022,10 +1056,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       width: 130,
                     },
                     {
-                      title: 'VỊ TRÍ CHI NHÁNH',
+                      title: 'VỊ TRÍ KHO',
                       dataIndex: 'branch',
                       key: 'branch',
-                      render: (b) => <Tag color="purple">{normalizeBranchName(b)}</Tag>,
+                      render: (b) => {
+                        const branchName = normalizeBranchName(b);
+                        return <Tag color={getBranchBadgeColor(branchName)}>{branchName}</Tag>;
+                      },
                       width: 150,
                     },
                     {
@@ -1096,13 +1133,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         cancelText="Hủy"
       >
         <Form form={importForm} layout="vertical" onFinish={handleImportSubmit}>
-          <Form.Item name="branch" label="Chi Nhánh" rules={[{ required: true, message: 'Vui lòng chọn chi nhánh!' }]}>
-            <Select
-              options={[
-                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
-                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
-              ]}
-            />
+          <Form.Item name="branch" label="Vị Trí Kho / Chi Nhánh" rules={[{ required: true, message: 'Vui lòng chọn kho!' }]}>
+            <Select options={branchOptions} />
           </Form.Item>
           <Form.Item name="brand" label="Hãng Xe" rules={[{ required: true, message: 'Nhập hãng xe!' }]}>
             <Input placeholder="Ví dụ: Yadea, Vinfast, Dkbike..." />
@@ -1127,7 +1159,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
       {/* Modal Chuyển 1 xe */}
       <Modal
-        title="Chuyển 1 Xe Sang Chi Nhánh Khác"
+        title="Chuyển 1 Xe Sang Kho / Chi Nhánh Khác"
         open={isTransferModalOpen}
         onCancel={() => setIsTransferModalOpen(false)}
         onOk={() => transferForm.submit()}
@@ -1139,13 +1171,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           <Form.Item name="frame_number" label="Số Khung Xe Cần Chuyển" rules={[{ required: true, message: 'Nhập số khung xe!' }]}>
             <Input placeholder="Nhập số khung xe đang có trong kho..." />
           </Form.Item>
-          <Form.Item name="toBranch" label="Chi Nhánh Nhận Xe" rules={[{ required: true, message: 'Chọn chi nhánh đích!' }]}>
-            <Select
-              options={[
-                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
-                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
-              ]}
-            />
+          <Form.Item name="toBranch" label="Kho / Chi Nhánh Nhận Xe" rules={[{ required: true, message: 'Chọn kho đích!' }]}>
+            <Select options={branchOptions} />
           </Form.Item>
           <Form.Item name="note" label="Lý Do / Ghi Chú">
             <Input.TextArea rows={2} placeholder="Lý do chuyển kho..." />
@@ -1164,13 +1191,8 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         cancelText="Hủy"
       >
         <Form form={batchTransferForm} layout="vertical" onFinish={handleBatchTransferSubmit}>
-          <Form.Item name="toBranch" label="Chi Nhánh Đích Nhận Xe" rules={[{ required: true, message: 'Vui lòng chọn chi nhánh đích!' }]}>
-            <Select
-              options={[
-                { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
-                { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
-              ]}
-            />
+          <Form.Item name="toBranch" label="Kho / Chi Nhánh Đích Nhận Xe" rules={[{ required: true, message: 'Vui lòng chọn kho đích!' }]}>
+            <Select options={branchOptions} />
           </Form.Item>
           <Form.Item name="note" label="Ghi Chú Luân Chuyển">
             <Input.TextArea rows={2} placeholder="Nhập ghi chú cho đợt chuyển lô này..." />
@@ -1200,7 +1222,15 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             { title: 'Hãng', dataIndex: 'brand', key: 'brand' },
             { title: 'Model', dataIndex: 'model', key: 'model' },
             { title: 'Màu', dataIndex: 'color', key: 'color' },
-            { title: 'Chi Nhánh', dataIndex: 'branch', key: 'branch', render: (b) => <Tag color="purple">{normalizeBranchName(b)}</Tag> },
+            { 
+              title: 'Vị Trí Kho', 
+              dataIndex: 'branch', 
+              key: 'branch', 
+              render: (b) => {
+                const branchName = normalizeBranchName(b);
+                return <Tag color={getBranchBadgeColor(branchName)}>{branchName}</Tag>;
+              } 
+            },
             { title: 'Ghi Chú', dataIndex: 'note', key: 'note' },
           ]}
         />
