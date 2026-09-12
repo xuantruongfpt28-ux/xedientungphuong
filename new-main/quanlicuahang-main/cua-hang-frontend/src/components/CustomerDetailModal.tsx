@@ -1,173 +1,156 @@
-import React from 'react';
-import { Modal, Descriptions, Tag, Typography, Space, Button } from 'antd';
-import {
-  UserOutlined,
-  PhoneOutlined,
-  IdcardOutlined,
-  HomeOutlined,
-  CarOutlined,
-  CalendarOutlined,
-  DollarOutlined,
-  BankOutlined,
-  ShopOutlined,
-  FileTextOutlined,
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-
-const { Text, Title } = Typography;
-
-export interface Customer {
-  id: number;
-  fullName?: string;
-  ho_ten?: string;
-  phone?: string;
-  so_dien_thoai?: string;
-  address?: string;
-  dia_chi?: string;
-  identityCard?: string;
-  cccd?: string;
-  vehicleName?: string;
-  ten_xe?: string;
-  color?: string;
-  mau_sac?: string;
-  frameNumber?: string;
-  so_khung?: string;
-  batteryNumber?: string;
-  so_pin?: string;
-  so_acquy?: string;
-  price?: number;
-  gia_ban?: number;
-  installmentBank?: string;
-  ngan_hang_gop?: string;
-  installmentAmount?: number;
-  so_tien_gop?: number;
-  purchaseDate?: string;
-  ngay_mua?: string;
-  created_at?: string;
-  branch?: string;
-  chi_nhanh?: string;
-  note?: string;
-  ghi_chu?: string;
-}
-
 interface CustomerDetailModalProps {
-  open: boolean;
-  customer: Customer | null;
+  isOpen: boolean;
   onClose: () => void;
+  customer: any; // Hoặc định nghĩa type chi tiết nếu có
 }
 
-export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({ open, customer, onClose }) => {
-  if (!customer) return null;
+export const CustomerDetailModal = ({
+  isOpen,
+  onClose,
+  customer,
+}: CustomerDetailModalProps) => {
+  if (!isOpen || !customer) return null;
+
+  // Helper format tiền tệ VNĐ
+  const formatCurrency = (amount: any): string => {
+    if (amount === null || amount === undefined || isNaN(Number(amount))) return '0 VNĐ';
+    return Number(amount).toLocaleString('vi-VN') + ' VNĐ';
+  };
+
+  // Helper format ngày tháng
+  const formatDate = (dateString: any): string => {
+    if (!dateString) return '---';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? String(dateString) : date.toLocaleDateString('vi-VN');
+  };
 
   return (
-    <Modal
-      title={
-        <Space>
-          <UserOutlined style={{ color: '#1677ff', fontSize: 20 }} />
-          <Title level={4} style={{ margin: 0 }}>
-            Thông Tin Chi Tiết Khách Hàng #{customer.id}
-          </Title>
-        </Space>
-      }
-      open={open}
-      onCancel={onClose}
-      footer={[
-        <Button key="close" type="primary" onClick={onClose}>
-          Đóng
-        </Button>,
-      ]}
-      width={800}
-      centered
-    >
-      <div style={{ marginTop: 16 }}>
-        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-          <Descriptions.Item label={<Space><UserOutlined /> Họ và Tên</Space>} span={2}>
-            <Text strong style={{ fontSize: 16, color: '#1677ff' }}>
-              {customer.fullName || customer.ho_ten || 'Khách chưa nhập tên'}
-            </Text>
-          </Descriptions.Item>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+        {/* Header Modal */}
+        <div className="flex items-center justify-between border-b pb-3">
+          <h3 className="text-lg font-bold text-gray-800">
+            Thông Tin Chi Tiết Khách Hàng #{customer.id || ''}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            ✕
+          </button>
+        </div>
 
-          <Descriptions.Item label={<Space><PhoneOutlined /> Số Điện Thoại</Space>}>
-            {customer.phone || customer.so_dien_thoai ? (
-              <Text copyable style={{ fontWeight: 600 }}>
-                {customer.phone || customer.so_dien_thoai}
-              </Text>
-            ) : '---'}
-          </Descriptions.Item>
+        {/* Nội dung Modal */}
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          {/* Họ và Tên */}
+          <div className="col-span-2 flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Họ và Tên:</span>
+            <span className="font-bold text-blue-600">{customer.fullName || customer.name || '---'}</span>
+          </div>
 
-          <Descriptions.Item label={<Space><IdcardOutlined /> CCCD / CMND</Space>}>
-            {customer.identityCard || customer.cccd || '---'}
-          </Descriptions.Item>
+          {/* Số Điện Thoại */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Số Điện Thoại:</span>
+            <span>{customer.phone || customer.phoneNumber || '---'}</span>
+          </div>
 
-          <Descriptions.Item label={<Space><HomeOutlined /> Địa Chỉ</Space>} span={2}>
-            {customer.address || customer.dia_chi || '---'}
-          </Descriptions.Item>
+          {/* CCCD / CMND - Đã sửa đúng key idCardNumber từ Supabase */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">CCCD / CMND:</span>
+            <span>{customer.idCardNumber || customer.cccd || customer.cmnd || '---'}</span>
+          </div>
 
-          <Descriptions.Item label={<Space><CarOutlined /> Tên Xe / Hãng</Space>} span={2}>
-            <Text strong style={{ fontSize: 15 }}>
-              {customer.vehicleName || customer.ten_xe || '---'}
-            </Text>
-          </Descriptions.Item>
+          {/* Địa Chỉ */}
+          <div className="col-span-2 flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Địa Chỉ:</span>
+            <span>{customer.address || '---'}</span>
+          </div>
 
-          <Descriptions.Item label="Màu Xe">
-            {customer.color || customer.mau_sac ? (
-              <Tag color="cyan">{customer.color || customer.mau_sac}</Tag>
-            ) : '---'}
-          </Descriptions.Item>
+          {/* Tên Xe / Hãng */}
+          <div className="col-span-2 flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Tên Xe / Hãng:</span>
+            <span className="font-semibold">{customer.carName || customer.bikeName || customer.vehicleName || '---'}</span>
+          </div>
 
-          <Descriptions.Item label={<Space><CalendarOutlined /> Thời Gian Mua</Space>}>
-            {customer.purchaseDate || customer.ngay_mua || customer.created_at
-              ? dayjs(customer.purchaseDate || customer.ngay_mua || customer.created_at).format('DD/MM/YYYY HH:mm')
-              : '---'}
-          </Descriptions.Item>
+          {/* Màu Xe */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Màu Xe:</span>
+            <span className="rounded bg-blue-100 px-2 py-0.5 text-blue-700">
+              {customer.color || customer.carColor || '---'}
+            </span>
+          </div>
 
-          <Descriptions.Item label="Số Khung (VIN)">
-            {customer.frameNumber || customer.so_khung ? (
-              <Tag color="orange" style={{ fontWeight: 700 }}>
-                {customer.frameNumber || customer.so_khung}
-              </Tag>
-            ) : '---'}
-          </Descriptions.Item>
+          {/* Thời Gian Mua */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Thời Gian Mua:</span>
+            <span>{formatDate(customer.purchaseDate || customer.buyDate || customer.created_at || customer.createdAt)}</span>
+          </div>
 
-          <Descriptions.Item label="Số Acquy / Pin">
-            {customer.batteryNumber || customer.so_pin || customer.so_acquy ? (
-              <Tag color="green" style={{ fontWeight: 700 }}>
-                {customer.batteryNumber || customer.so_pin || customer.so_acquy}
-              </Tag>
-            ) : '---'}
-          </Descriptions.Item>
+          {/* Số Khung (VIN) */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Số Khung (VIN):</span>
+            <span className="rounded bg-orange-100 px-2 py-0.5 font-mono text-orange-700">
+              {customer.vinNumber || customer.frameNumber || customer.vin || '---'}
+            </span>
+          </div>
 
-          <Descriptions.Item label={<Space><DollarOutlined /> Giá Bán</Space>}>
-            <Text type="danger" strong style={{ fontSize: 16 }}>
-              {customer.price ?? customer.gia_ban
-                ? `${Number(customer.price ?? customer.gia_ban).toLocaleString('vi-VN')} VNĐ`
-                : '---'}
-            </Text>
-          </Descriptions.Item>
+          {/* Số Acquy / Pin */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Số Acquy / Pin:</span>
+            <span className="rounded bg-green-100 px-2 py-0.5 font-mono text-green-700">
+              {customer.batteryNumber || customer.pinNumber || '---'}
+            </span>
+          </div>
 
-          <Descriptions.Item label={<Space><BankOutlined /> Ngân Hàng Góp</Space>}>
-            {customer.installmentBank || customer.ngan_hang_gop ? (
-              <Tag color="purple">{customer.installmentBank || customer.ngan_hang_gop}</Tag>
-            ) : (
-              <Tag color="blue">Trả thẳng</Tag>
-            )}
-          </Descriptions.Item>
+          {/* Giá Bán */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Giá Bán:</span>
+            <span className="font-bold text-red-500">
+              {formatCurrency(customer.price || customer.sellingPrice || customer.totalAmount)}
+            </span>
+          </div>
 
-          <Descriptions.Item label="Số Tiền Góp">
-            {customer.installmentAmount || customer.so_tien_gop
-              ? `${Number(customer.installmentAmount || customer.so_tien_gop).toLocaleString('vi-VN')} VNĐ`
-              : '0 VNĐ'}
-          </Descriptions.Item>
+          {/* Ngân Hàng Góp */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Ngân Hàng Góp:</span>
+            <span>{customer.installmentBank || customer.bankName || '---'}</span>
+          </div>
 
-          <Descriptions.Item label={<Space><ShopOutlined /> Chi Nhánh Mua</Space>}>
-            <Tag color="geekblue">{customer.branch || customer.chi_nhanh || 'Chi nhánh 1'}</Tag>
-          </Descriptions.Item>
+          {/* Số Tiền Góp */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Số Tiền Góp:</span>
+            <span>
+              {formatCurrency(customer.installmentAmount || customer.installmentMoney || customer.monthlyAmount)}
+            </span>
+          </div>
 
-          <Descriptions.Item label={<Space><FileTextOutlined /> Ghi Chú</Space>} span={2}>
-            {customer.note || customer.ghi_chu || <Text type="secondary" italic>Không có ghi chú</Text>}
-          </Descriptions.Item>
-        </Descriptions>
+          {/* Chi Nhánh Mua */}
+          <div className="flex items-center">
+            <span className="w-32 font-semibold text-gray-600">Chi Nhánh Mua:</span>
+            <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-600">
+              {customer.branch || customer.branchName || '---'}
+            </span>
+          </div>
+
+          {/* Ghi Chú */}
+          <div className="col-span-2 mt-2 flex items-start">
+            <span className="w-32 font-semibold text-gray-600">Ghi Chú:</span>
+            <span className="italic text-gray-500">{customer.note || customer.notes || 'Không có ghi chú'}</span>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 flex justify-end border-t pt-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-blue-600 px-5 py-2 text-white transition hover:bg-blue-700"
+          >
+            Đóng
+          </button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 };
+
+export default CustomerDetailModal;

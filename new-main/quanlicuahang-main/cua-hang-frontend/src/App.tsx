@@ -1852,7 +1852,7 @@ export default function App() {
 
       {/* Modal Xem Chi Tiết Khách Hàng */}
       <CustomerDetailModal
-        open={isDetailModalOpen}
+        isOpen={isDetailModalOpen}
         customer={selectedCustomerDetail}
         onClose={() => setIsDetailModalOpen(false)}
       />
