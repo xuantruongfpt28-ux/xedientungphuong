@@ -6,7 +6,7 @@ import {
   Table,
   Input,
   Button,
-  Card, 
+  Card,
   Tag,
   Typography,
   Modal,
@@ -54,7 +54,6 @@ dayjs.extend(customParseFormat);
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-// Tự động lấy domain hiện tại nếu không khai báo VITE_API_URL
 const BASE_API_URL = import.meta.env.VITE_API_URL || `${window.location.origin}/api`;
 
 export interface Customer {
@@ -85,10 +84,15 @@ export interface Customer {
   timestamp?: string;
   ngay_mua?: string;
   createdAt?: string;
-  
-  // Các thuộc tính bổ sung
+
+  // Các thuộc tính tài chính & thông tin cá nhân
   installmentBank?: string;
   debtAmount?: number | string;
+  
+  // ⚡ 2 TRƯỜNG MỚI BỔ SUNG:
+  prepaidAmount?: number | string; // Số tiền trả trước (so_tien_tra_truoc)
+  note?: string;                  // Ghi chú (ghi_chu)
+
   email?: string;
   idCardNumber?: string;
   idCardIssueDate?: string;
@@ -119,7 +123,8 @@ export const extractVehicleInfo = (item: Customer) => {
     'color', 'mau', 'price', 'gia_xe', 'staffname', 'nhan_vien', 'branchname',
     'chi_nhanh', 'framenumber', 'so_khung', 'batterynumber', 'so_pin', 'imageurl',
     'formtimestamp', 'timestamp', 'ngay_mua', 'created_at', 'createdat', 'dấu thời gian',
-    'installmentbank', 'debtamount', 'email', 'idcardnumber', 'idcardissuedate'
+    'installmentbank', 'debtamount', 'prepaidamount', 'so_tien_tra_truoc', 'note', 'ghi_chu',
+    'email', 'idcardnumber', 'idcardissuedate'
   ];
 
   const foundText: string[] = [];
@@ -226,6 +231,9 @@ const executePrintContract = (customer: Customer) => {
   const debtAmountNum = Number(customer.debtAmount || 0);
   const debtAmountStr = debtAmountNum > 0 ? debtAmountNum.toLocaleString('vi-VN') + ' VNĐ' : '';
 
+  const prepaidAmountNum = Number(customer.prepaidAmount || customer.so_tien_tra_truoc || 0);
+  const prepaidAmountStr = prepaidAmountNum > 0 ? prepaidAmountNum.toLocaleString('vi-VN') + ' VNĐ' : '';
+
   const modelXe = extractVehicleInfo(customer);
   const mauXe = customer.color || customer.mau || '';
   const soKhung = customer.frameNumber || customer.so_khung || '';
@@ -243,79 +251,34 @@ const executePrintContract = (customer: Customer) => {
       <meta charset="utf-8">
       <title>Hop_dong_${hoTen || 'khach_hang'}</title>
       <style>
-        @page { 
-          size: A4 portrait; 
-          margin: 0; 
-        }
+        @page { size: A4 portrait; margin: 0; }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        
-        html, body { 
-          margin: 0; 
-          padding: 0; 
-          background: #fff; 
-          font-family: "Times New Roman", Times, serif; 
-          color: #000; 
-        }
-
-        .page {
-          width: 210mm;
-          height: 297mm;
-          padding: 12mm 15mm 10mm 15mm;
-          position: relative;
-          overflow: hidden;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .page-break {
-          page-break-before: always;
-        }
-
+        html, body { margin: 0; padding: 0; background: #fff; font-family: "Times New Roman", Times, serif; color: #000; }
+        .page { width: 210mm; height: 297mm; padding: 12mm 15mm 10mm 15mm; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; }
+        .page-break { page-break-before: always; }
         table { width: 100%; border-collapse: collapse; }
-        
         table.grid-table { border: 1px solid #000; margin-top: 10px; }
-        table.grid-table td, table.grid-table th { 
-          border: 1px solid #000; 
-          padding: 8px 10px; 
-          vertical-align: top; 
-          font-size: 11pt;
-          line-height: 1.35;
-        }
-
+        table.grid-table td, table.grid-table th { border: 1px solid #000; padding: 8px 10px; vertical-align: top; font-size: 11pt; line-height: 1.35; }
         .bold { font-weight: bold; }
         .italic { font-style: italic; }
         .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        
-        .info-section {
-          font-size: 11pt;
-          line-height: 1.45;
-        }
-
-        .info-row { 
-          margin-bottom: 7px; 
-        }
-
+        .info-section { font-size: 11pt; line-height: 1.45; }
+        .info-row { margin-bottom: 7px; }
         ul.note-list { margin: 4px 0; padding-left: 16px; font-size: 10pt; line-height: 1.25; }
         ul.note-list li { margin-bottom: 3px; }
       </style>
     </head>
     <body>
-      <!-- TRANG 1 -->
       <div class="page" style="justify-content: space-between;">
         <div>
-          <!-- HEADER CÔNG TY & QUỐC HIỆU -->
           <table style="margin-bottom: 12px;">
             <tbody>
               <tr>
                 <td style="width: 56%; vertical-align: top;">
                   <strong style="font-size: 11.5pt;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
                   <span style="font-size: 9.5pt; line-height: 1.25;">
-                    <strong>CN Xe Điện Tổng Hợp:</strong><br />
-                    102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
-                    <strong>CN2 Xe Điện Yadea và Vinfast:</strong><br />
-                    41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
+                    <strong>CN Xe Điện Tổng Hợp:</strong> 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
+                    <strong>CN2 Xe Điện Yadea và Vinfast:</strong> 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
                   </span>
                 </td>
                 <td style="width: 44%; vertical-align: top; text-align: center;">
@@ -327,172 +290,29 @@ const executePrintContract = (customer: Customer) => {
             </tbody>
           </table>
 
-          <!-- TIÊU ĐỀ -->
           <div class="text-center" style="margin: 12px 0 14px 0;">
-            <div class="bold" style="font-size: 16pt; letter-spacing: 0.5px;">BIÊN NHẬN</div>
+            <div class="bold" style="font-size: 16pt;">BIÊN NHẬN</div>
             <div class="bold" style="font-size: 12pt;">(KIÊM HỢP ĐỒNG BÁN XE)</div>
           </div>
 
-          <!-- THÔNG TIN BÊN A & BÊN B -->
           <div class="info-section">
             <div class="info-row"><strong>I. Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
-            <div class="info-row" style="font-size: 9.5pt; margin-left: 12px;">
-              <strong>Địa Chỉ:</strong><br />
-              Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
-              Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
-            </div>
-
             <div class="info-row" style="margin-top: 10px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
-            <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
+            <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
             <div class="info-row">Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
-            <div class="info-row">CCCD số: <strong>${idCardNumber || '............................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Ngày cấp: <strong>${idCardIssueDate || '.........................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Nơi cấp: Cục Cảnh Sát.</div>
+            <div class="info-row">CCCD số: <strong>${idCardNumber || '............................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Ngày cấp: <strong>${idCardIssueDate || '.........................'}</strong></div>
             <div class="info-row">Email: <strong>${email || '........................................................................................................................'}</strong></div>
             <div class="info-row">
               Tên Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Màu: <strong>${mauXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong>
             </div>
             <div class="info-row">
-              Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khách Nợ: <strong>${debtAmountStr || '............................'}</strong>
+              Số tiền trả trước: <strong>${prepaidAmountStr || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khách Nợ: <strong>${debtAmountStr || '............................'}</strong>
             </div>
-            <div class="info-row italic">
-              (Viết bằng chữ: ....................................................................)
-            </div>
-            <div class="info-row">
-              Số tiền khách đặt cọc: ....................................................................................................
-            </div>
-            <div class="info-row">
-              Thu xe cũ ( tên xe ): ......................... Màu: ......................... Số VIN: .........................
-            </div>
-
-            <div style="margin: 10px 0 6px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
+            ${customer.note || customer.ghi_chu ? `<div class="info-row">Ghi chú: <strong>${customer.note || customer.ghi_chu}</strong></div>` : ''}
           </div>
-
-          <!-- BẢNG ĐIỀU KHOẢN -->
-          <table class="grid-table">
-            <thead>
-              <tr>
-                <th style="width: 50%; padding: 8px;" class="text-center">I. ĐIỀU KHOẢN VỀ BẢO HÀNH</th>
-                <th style="width: 50%; padding: 8px;" class="text-center">II. HƯỚNG DẪN SỬ DỤNG ẮC QUY</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="padding: 10px 12px; height: 100%;">
-                  <div class="bold">YADEA</div>
-                  <div style="margin-top: 3px;">1. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 24 tháng. ((Cụ thể lỗi 1 bình đổi cả bộ trong 18 tháng, lỗi bình nào đổi bình đó trong 6 tháng còn lại (Hoặc 20.000km))</div>
-                  <div style="margin-top: 5px;">2. Động cơ, IC, bộ sạc bảo hành 36 tháng. Pin bảo hành 36 tháng (Hoặc 30.000km)</div>
-                  <div style="margin-top: 5px;">3. Động cơ, IC, bộ sạc bảo hành 24 tháng. Bình bảo hành 12 tháng (Cụ thể lỗi 1 bình đổi cả bộ trong 9 tháng, lỗi bình nào đổi bình đó trong 3 tháng còn lại)</div>
-                  <div class="bold" style="margin-top: 10px;">XE HÃNG KHÁC ( JP Motor, Detech, Victoria...)</div>
-                  <div style="margin-top: 3px;">[ &nbsp; ] Bình bảo hành 12 tháng, phù 06 tháng (nên xem hướng dẫn sử dụng ắc quy).</div>
-                  <div style="margin-top: 3px;">[ &nbsp; ] Bình bảo hành 12 tháng, phù 09 tháng (nên xem hướng dẫn sử dụng ắc quy)</div>
-                  <div style="margin-top: 3px;">[ &nbsp; ] Bình bảo hành 24 tháng</div>
-                  <div style="margin-top: 8px; line-height: 1.5;">
-                    Động cơ: ........ Tháng<br />
-                    IC: .................. Tháng<br />
-                    Bộ Sạc: ............ Tháng
-                  </div>
-                </td>
-                <td style="padding: 10px 12px;">
-                  <div class="italic">
-                    <strong>Lần sạc đầu tiên:</strong> Sau khi sạc ắc quy đầy, sạc báo đèn xanh, rút sạc ra đợi khoảng 20 phút, cắm lại cho sạc tiếp khoảng 1 tiếng.
-                  </div>
-                  <div class="italic" style="margin-top: 10px; line-height: 1.45;">
-                    <strong>Trong quá trình sử dụng:</strong><br />
-                    + Sau khi đi xe khoảng 30 phút để ắc quy nguội bớt rồi mới sạc.<br />
-                    + Sạc sạc đầy mới sử dụng. Hạn chế tối đa tình trạng xe cạn ắc quy và sạc nhiều lần trong ngày.<br />
-                    + Trường hợp có việc bận không có nhu cầu sử dụng xe, thì mỗi tuần nên sạc 1 lần.
-                  </div>
-                  <div class="bold text-center" style="margin-top: 25px; font-size: 10pt; line-height: 1.35; padding: 0 5px;">
-                    ẮC QUY SẼ XUỐNG CẤP DẦN THEO THỜI GIAN NÊN HÃY SỬ DỤNG ĐÚNG CÁCH ĐỂ SỬ DỤNG ẮC QUY ĐƯỢC LÂU HƠN
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
-
-      <!-- TRANG 2 -->
-      <div class="page page-break">
-        <table class="grid-table" style="margin-top: 0;">
-          <tbody>
-            <tr>
-              <td style="width: 50%; padding: 8px 10px;">
-                <div class="bold">VINFAST</div>
-                <div>1. Xe (Động Cơ, IC, bảo hành 6 năm)</div>
-                <div>2. PIN bảo hành 8 năm</div>
-                <div>3. Linh kiện điện bảo hành 1 năm</div>
-                <div>4. Các Chi Tiết Hao Mòn, Gãy, Bể, Hư Hỏng không do lỗi nhà sản xuất không thuộc trường hợp bảo hành.</div>
-              </td>
-              <td style="width: 50%;"></td>
-            </tr>
-            <tr>
-              <td style="width: 50%; padding: 8px 10px;">
-                <div class="bold">IV. Thoả thuận và thống nhất giữa hai bên như sau:</div>
-                <div>* Giá bán xe chưa bao gồm phí trước bạ, phí bấm biển số và phí dịch vụ (đối với xe máy điện).</div>
-                <div style="margin-top: 2px;">* Dịch vụ bấm biển số (không bao bảo hiểm và phí kẹp biển số):</div>
-                <div style="margin-top: 2px;">* Quà tặng: NÓN BẢO HIỂM</div>
-              </td>
-              <td style="width: 50%; padding: 8px 10px;">
-                <div class="bold">V. Điều khoản chung:</div>
-                <div>* Bên B đã kiểm tra xe mới 100%, không trầy xước, phụ tùng theo xe đầy đủ.</div>
-                <div style="margin-top: 2px;">* Bên B đã được bên A hướng dẫn sử dụng xe, chế độ bảo hành và kỹ năng lái xe an toàn, nhận quà khuyến mãi đầy đủ... bên B đã đọc và xác nhận những nội dung trên.</div>
-                <div style="margin-top: 2px;">* Biên nhận được lập thành 02 bản có giá trị như nhau, mỗi bên giữ 1 bản.</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- LƯU Ý -->
-        <div style="line-height: 1.25; margin-top: 6px;">
-          <div><strong style="text-decoration: underline;">*LƯU Ý :</strong> &nbsp;* Phụ kiện theo xe: Bộ sạc.</div>
-          <ul class="note-list" style="list-style-type: '✓ '; padding-left: 16px;">
-            <li><strong style="text-decoration: underline;">Luôn Đội Nón bảo hiểm khi tham gia giao thông (Kể cả xe đạp điện).</strong></li>
-            <li>Những phần hao mòn trong quá trình sử dụng không bảo hành.</li>
-            <li>Không bảo hành đối với xe đã đã thay đổi kết cấu về Điện.</li>
-            <li>
-              Bảo hành phải cho tháo xe, đồng thời xe phải được đem đến cửa hàng. (NẾU TRƯỜNG HỢP BẢO HÀNH TẬN NƠI – SẼ TÍNH PHÍ ĐI LẠI TÙY ĐIỀU KIỆN KHOẢNG CÁCH TỪ 100,000 ĐẾN 200,000 / 1 LẦN ĐI LẠI)<br />
-              <span style="text-decoration: underline;">Điều kiện: Miễn Phí Cứu Hộ Trong tháng thứ 1 (Nếu có lỗi kỹ thuật từ nhà sản xuất)</span><br />
-              Từ 1km đến 10km : 100.000đ / 1 lần đi lại.<br />
-              Từ 10km – 15km : 150.000/ 1 lần đi lại.<br />
-              Trên 20km (Trong Phạm vi Huyện Giồng Riềng cũ) : 200.000km
-            </li>
-            <li><strong style="text-decoration: underline;">Mọi vấn đề phát sinh với xe trong quá trình sử dụng phải đem đến cửa hàng.</strong></li>
-            <li><strong style="text-decoration: underline;">ĐẶC BIỆT LƯU Ý: ẮC-QUI PHẢI ĐƯỢC SẠC THƯỜNG XUYÊN. TRÁNH TRƯỜNG HỢP MẤT NGUỒN HOẶC TUỘT ÁP, ĐẠI LÝ TỪ CHỐI BẢO HÀNH.</strong></li>
-            <li>
-              <strong>KHÁCH HÀNG ĐỔI XE:</strong><br />
-              TRONG 12 GIỜ: KHÁCH HÀNG BÙ LỖ 10%<br />
-              TRONG 3 NGÀY: KHÁCH HÀNG BÙ LỖ 20%<br />
-              TRONG 30 NGÀY: KHÁCH HÀNG BÙ LỖ 30%<br />
-              <strong style="text-decoration: underline;">( TRONG BẤT KỲ TRƯỜNG HỢP NÀO ) , ĐỐI VỚI XE XUẤT HÓA ĐƠN , ĐÃ ĐÓNG THUẾ TRƯỚC BẠ BÙ LỖ 30%.</strong>
-            </li>
-            <li><span style="text-decoration: underline;">Bên B ( Người Mua ) Đã được tư vấn xe phù hợp với độ tuổi , các xe có thể đăng ký biển số đã được khách hàng xác nhận.</span></li>
-          </ul>
-        </div>
-
-        <div class="italic" style="font-size: 10pt; margin-top: 6px;">
-          Tôi (bên B) hoàn toàn đồng ý với những thoả thuận trên.
-        </div>
-
-        <!-- CHỮ KÝ -->
-        <table style="margin-top: 15px; text-align: center; font-size: 10.5pt;">
-          <tbody>
-            <tr>
-              <td style="width: 50%; padding-bottom: 60px;">
-                <strong>Bên bán A</strong><br />
-                <i style="font-size: 9pt; text-decoration: underline;">(Ký và ghi rõ họ tên)</i>
-              </td>
-              <td style="width: 50%; padding-bottom: 60px;">
-                <strong>Bên mua B</strong><br />
-                <i style="font-size: 9pt; text-decoration: underline;">(Ký và ghi rõ họ tên)</i>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <script>
-        window.onload = function() { window.print(); }
-      </script>
+      <script>window.onload = function() { window.print(); }</script>
     </body>
     </html>
   `;
@@ -523,7 +343,6 @@ export default function App() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // State quản lý Modal Xem Chi Tiết Khách Hàng
   const [selectedCustomerDetail, setSelectedCustomerDetail] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
@@ -623,7 +442,7 @@ export default function App() {
       }
 
       message.success(`Đã đổi mật khẩu cho tài khoản [${selectedAccountToEdit.username}] thành công!`);
-      
+
       await logActivity({
         actionType: 'STATUS_CHANGE',
         description: `Đổi mật khẩu tài khoản [${selectedAccountToEdit.username}]`,
@@ -748,14 +567,15 @@ export default function App() {
       brand,
       model,
       color: record.color || record.mau || '',
-      price: record.price ? Number(record.price) : (record.gia_xe ? Number(record.gia_xe) : 0),
+      price: record.price ? Number(record.price) : record.gia_xe ? Number(record.gia_xe) : 0,
+      prepaidAmount: record.prepaidAmount ? Number(record.prepaidAmount) : record.so_tien_tra_truoc ? Number(record.so_tien_tra_truoc) : 0,
+      installmentBank: record.installmentBank || '',
+      debtAmount: record.debtAmount ? Number(record.debtAmount) : 0,
+      note: record.note || record.ghi_chu || '',
       staffName: record.staffName || record.nhan_vien || '',
       branchName: record.branchName || record.chi_nhanh || 'Chi nhánh 1',
       frameNumber: record.frameNumber || record.so_khung || '',
       batteryNumber: record.batteryNumber || record.so_pin || '',
-      
-      installmentBank: record.installmentBank || '',
-      debtAmount: record.debtAmount ? Number(record.debtAmount) : 0,
       email: record.email || '',
       idCardNumber: record.idCardNumber || '',
       idCardIssueDate: record.idCardIssueDate || '',
@@ -766,21 +586,15 @@ export default function App() {
   const handleFormSubmit = async (values: any) => {
     setSubmitting(true);
 
-    const rawPrice = values.price;
-    let parsedPrice = 0;
-    if (typeof rawPrice === 'number') {
-      parsedPrice = Math.round(rawPrice);
-    } else if (typeof rawPrice === 'string') {
-      parsedPrice = parseInt(rawPrice.replace(/[^0-9]/g, ''), 10) || 0;
-    }
+    const parseMoney = (val: any) => {
+      if (typeof val === 'number') return Math.round(val);
+      if (typeof val === 'string') return parseInt(val.replace(/[^0-9]/g, ''), 10) || 0;
+      return 0;
+    };
 
-    const rawDebt = values.debtAmount;
-    let parsedDebt = 0;
-    if (typeof rawDebt === 'number') {
-      parsedDebt = Math.round(rawDebt);
-    } else if (typeof rawDebt === 'string') {
-      parsedDebt = parseInt(rawDebt.replace(/[^0-9]/g, ''), 10) || 0;
-    }
+    const parsedPrice = parseMoney(values.price);
+    const parsedPrepaid = parseMoney(values.prepaidAmount);
+    const parsedDebt = parseMoney(values.debtAmount);
 
     const payload = {
       fullName: values.fullName?.trim() || '',
@@ -795,7 +609,13 @@ export default function App() {
       staffName: values.staffName?.trim() || '',
       branchName: values.branchName || 'Chi nhánh 1',
       vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
-      
+
+      // ⚡ THÊM 2 TRƯỜNG MỚI VÀO PAYLOAD:
+      prepaidAmount: parsedPrepaid,
+      so_tien_tra_truoc: parsedPrepaid,
+      note: values.note?.trim() || '',
+      ghi_chu: values.note?.trim() || '',
+
       installmentBank: values.installmentBank?.trim() || '',
       debtAmount: parsedDebt,
       email: values.email?.trim() || '',
@@ -833,54 +653,13 @@ export default function App() {
           actionType: 'SALE',
           description: `Bán xe [${values.brand || ''} ${values.model || ''}] - Khách: [${values.fullName}] - Số khung: [${frameNum || 'N/A'}] - Chi nhánh: [${branch}]`,
         });
-
-        if (frameNum) {
-          try {
-            const { data: invItem } = await supabase
-              .from('Inventory')
-              .select('*')
-              .eq('frame_number', frameNum)
-              .maybeSingle();
-
-            if (invItem) {
-              await supabase
-                .from('Inventory')
-                .update({
-                  status: 'sold',
-                  updated_at: new Date().toISOString(),
-                })
-                .eq('id', invItem.id);
-
-              await supabase.from('InventoryLog').insert([
-                {
-                  type: 'sale',
-                  brand: invItem.brand,
-                  model: invItem.model,
-                  color: invItem.color,
-                  quantity: 1,
-                  from_branch: branch,
-                  note: `Bán xe số khung: ${frameNum} cho khách ${values.fullName || 'Khách lẻ'}`,
-                  created_by: currentUser?.fullName,
-                },
-              ]);
-              message.info(`Đã cập nhật xe số khung [${frameNum}] sang trạng thái ĐÃ BÁN.`);
-            }
-          } catch (invErr) {
-            console.warn('Lỗi cập nhật tồn kho Supabase:', invErr);
-          }
-        }
       }
       setIsModalOpen(false);
       form.resetFields();
       fetchCustomers();
     } catch (error: any) {
       console.error('Lỗi chi tiết từ Server:', error.response?.data || error);
-      const errorDetail =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        error.message ||
-        'Internal Server Error';
-      message.error(`Lỗi Server (500): ${errorDetail}`);
+      message.error(`Lỗi Server (500): ${error.message || 'Internal Server Error'}`);
     } finally {
       setSubmitting(false);
     }
@@ -906,7 +685,7 @@ export default function App() {
 
   const handleExportExcel = async (values: any) => {
     const { dateRange, staffName, branchName } = values;
-    const hideLoading = message.loading('Đang tải toàn bộ dữ liệu để xuất Excel...', 0);
+    const hideLoading = message.loading('Đang tải dữ liệu để xuất Excel...', 0);
 
     try {
       let allCustomers: Customer[] = [];
@@ -963,9 +742,6 @@ export default function App() {
           'Khách Hàng': item.fullName || item.ho_ten || '---',
           'Số Điện Thoại': item.phone || item.dien_thoai || '---',
           'Địa Chỉ': item.address || item.dia_chi || '---',
-          'Email': item.email || '---',
-          'CCCD': item.idCardNumber || '---',
-          'Ngày Cấp CCCD': item.idCardIssueDate || '---',
           'Tên Xe / Hãng': extractVehicleInfo(item),
           'Màu Sắc': item.color || item.mau || '---',
           'Số Khung': item.frameNumber || item.so_khung || '---',
@@ -975,47 +751,31 @@ export default function App() {
             : item.gia_xe
             ? Number(item.gia_xe).toLocaleString('vi-VN')
             : '0',
+          'Số Tiền Trả Trước (VNĐ)': item.prepaidAmount
+            ? Number(item.prepaidAmount).toLocaleString('vi-VN')
+            : item.so_tien_tra_truoc
+            ? Number(item.so_tien_tra_truoc).toLocaleString('vi-VN')
+            : '0',
           'Ngân Hàng Góp': item.installmentBank || '---',
           'Số Tiền Còn Nợ (VNĐ)': item.debtAmount
             ? Number(item.debtAmount).toLocaleString('vi-VN')
             : '0',
+          'Ghi Chú': item.note || item.ghi_chu || '---',
           'Nhân Viên': item.staffName || item.nhan_vien || '---',
           'Chi Nhánh': item.branchName || item.chi_nhanh || '---',
         };
       });
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
-      worksheet['!cols'] = [
-        { wch: 6 },
-        { wch: 10 },
-        { wch: 16 },
-        { wch: 25 },
-        { wch: 15 },
-        { wch: 35 },
-        { wch: 25 },
-        { wch: 18 },
-        { wch: 15 },
-        { wch: 25 },
-        { wch: 15 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 18 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 18 },
-      ];
-
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'DanhSachKhachHang');
       XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_${dayjs().format('DDMMYYYY_HHmmss')}.xlsx`);
 
-      message.success(`Đã xuất thành công toàn bộ ${filtered.length} dòng dữ liệu!`);
+      message.success(`Đã xuất thành công ${filtered.length} dòng dữ liệu!`);
       setIsExportModalOpen(false);
     } catch (error) {
       hideLoading();
       message.error('Lỗi khi tải toàn bộ dữ liệu xuất Excel!');
-      console.error(error);
     }
   };
 
@@ -1031,8 +791,7 @@ export default function App() {
     const staff = item.staffName || item.nhan_vien || '';
     const branch = item.branchName || item.chi_nhanh || '';
     const bank = item.installmentBank || '';
-    const email = item.email || '';
-    const cccd = item.idCardNumber || '';
+    const noteStr = item.note || item.ghi_chu || '';
 
     return (
       name.toLowerCase().includes(searchLower) ||
@@ -1045,11 +804,11 @@ export default function App() {
       staff.toLowerCase().includes(searchLower) ||
       branch.toLowerCase().includes(searchLower) ||
       bank.toLowerCase().includes(searchLower) ||
-      email.toLowerCase().includes(searchLower) ||
-      cccd.toLowerCase().includes(searchLower)
+      noteStr.toLowerCase().includes(searchLower)
     );
   });
 
+  // ⚡ BẢNG COLUMNS ĐÃ BỔ SUNG CỘT TRẢ TRƯỚC VÀ GHI CHÚ
   const columns: ColumnsType<Customer> = [
     {
       title: 'ID',
@@ -1108,7 +867,7 @@ export default function App() {
       dataIndex: 'address',
       key: 'address',
       render: (_: any, record: Customer) => <span style={{ fontSize: '13px', color: '#595959' }}>{record.address || record.dia_chi || '---'}</span>,
-      width: 220,
+      width: 200,
     },
     {
       title: 'TÊN XE / HÃNG',
@@ -1176,6 +935,25 @@ export default function App() {
       width: 130,
       align: 'right',
     },
+    // ⚡ CỘT 1: SỐ TIỀN TRẢ TRƯỚC
+    {
+      title: 'TRẢ TRƯỚC',
+      dataIndex: 'prepaidAmount',
+      key: 'prepaidAmount',
+      render: (_: any, record: Customer) => {
+        const numPrepaid = Number(record.prepaidAmount || record.so_tien_tra_truoc);
+        if (!isNaN(numPrepaid) && numPrepaid > 0) {
+          return (
+            <span style={{ fontWeight: 600, color: '#096dd9', whiteSpace: 'nowrap' }}>
+              {numPrepaid.toLocaleString('vi-VN')} VNĐ
+            </span>
+          );
+        }
+        return <Text type="secondary">---</Text>;
+      },
+      width: 130,
+      align: 'right',
+    },
     {
       title: 'NGÂN HÀNG GÓP',
       dataIndex: 'installmentBank',
@@ -1210,6 +988,23 @@ export default function App() {
       },
       width: 130,
       align: 'right',
+    },
+    // ⚡ CỘT 2: GHI CHÚ
+    {
+      title: 'GHI CHÚ',
+      dataIndex: 'note',
+      key: 'note',
+      render: (_: any, record: Customer) => {
+        const noteVal = record.note || record.ghi_chu;
+        return noteVal ? (
+          <span style={{ fontSize: '12px', color: '#595959', fontStyle: 'italic' }}>
+            {noteVal}
+          </span>
+        ) : (
+          <Text type="secondary">---</Text>
+        );
+      },
+      width: 160,
     },
     {
       title: 'NHÂN VIÊN',
@@ -1391,7 +1186,7 @@ export default function App() {
         <div style={{ width: '100%', overflowX: 'hidden' }}>
           <div style={{ marginBottom: 16 }}>
             <Input
-              placeholder="Tìm theo tên khách, SĐT, địa chỉ, ngân hàng, CCCD, Email, màu sắc, tên xe..."
+              placeholder="Tìm theo tên khách, SĐT, địa chỉ, ngân hàng, CCCD, Email, màu sắc, ghi chú..."
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
               value={searchText}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
@@ -1412,7 +1207,7 @@ export default function App() {
               showSizeChanger: false,
               simple: window.innerWidth < 768,
             }}
-            scroll={{ x: 2000 }}
+            scroll={{ x: 2300 }}
             size="small"
             onRow={(record) => ({
               onClick: () => {
@@ -1584,12 +1379,6 @@ export default function App() {
         style={{ maxWidth: '750px' }}
         destroyOnClose
       >
-        <div style={{ marginBottom: 16 }}>
-          <Text type="secondary">
-            Mật khẩu được lưu trực tiếp trên Cloud. Khi Admin đổi mật khẩu tại đây, tất cả thiết bị khác đều phải dùng mật khẩu mới để đăng nhập.
-          </Text>
-        </div>
-
         <Table<SystemAccount>
           dataSource={accounts}
           rowKey="username"
@@ -1700,7 +1489,7 @@ export default function App() {
         </div>
       </Modal>
 
-      {/* Modal Thêm / Sửa Khách Hàng */}
+      {/* ⚡ MODAL THÊM / SỬA KHÁCH HÀNG (ĐÃ THÊM Ô TRẢ TRƯỚC VÀ GHI CHÚ) */}
       <Modal
         title={editingCustomer ? `Sửa thông tin #${editingCustomer.id}` : 'Thêm Mới Khách Hàng'}
         open={isModalOpen}
@@ -1756,13 +1545,25 @@ export default function App() {
             </Form.Item>
           </div>
 
-          <Form.Item name="price" label="Giá bán (VNĐ)">
-            <InputNumber
-              style={{ width: '100%' }}
-              formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-              parser={(val) => val?.replace(/\./g, '') as unknown as number}
-            />
-          </Form.Item>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Form.Item name="price" label="Giá bán (VNĐ)">
+              <InputNumber
+                style={{ width: '100%' }}
+                formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                parser={(val) => val?.replace(/\./g, '') as unknown as number}
+              />
+            </Form.Item>
+            
+            {/* ⚡ Ô NHẬP SỐ TIỀN TRẢ TRƯỚC */}
+            <Form.Item name="prepaidAmount" label="Số tiền trả trước (VNĐ)">
+              <InputNumber
+                style={{ width: '100%' }}
+                formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                parser={(val) => val?.replace(/\./g, '') as unknown as number}
+                placeholder="0"
+              />
+            </Form.Item>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <Form.Item name="installmentBank" label="Ngân hàng góp">
@@ -1776,6 +1577,11 @@ export default function App() {
               />
             </Form.Item>
           </div>
+
+          {/* ⚡ Ô NHẬP GHI CHÚ */}
+          <Form.Item name="note" label="Ghi chú">
+            <Input.TextArea rows={2} placeholder="Nhập ghi chú đơn hàng..." />
+          </Form.Item>
 
           <Form.Item name="staffName" label="Nhân viên">
             <Input />
@@ -1823,10 +1629,6 @@ export default function App() {
           <Form.Item name="branchName" label="Lọc theo Chi nhánh">
             <Select allowClear placeholder="Tất cả chi nhánh" options={branchOptions} showSearch />
           </Form.Item>
-
-          <Text type="secondary" style={{ display: 'block', marginBottom: 20, fontSize: '13px' }}>
-            💡 Mẹo: Bạn có thể để trống các ô nếu muốn xuất toàn bộ dữ liệu.
-          </Text>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button onClick={() => setIsExportModalOpen(false)}>Hủy</Button>
