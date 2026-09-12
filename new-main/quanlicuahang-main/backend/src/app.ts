@@ -17,6 +17,15 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Hàm tiện ích làm sạch tên xe, tránh dính ISO timestamp
+const cleanVehicleName = (vehicleName?: string, brand?: string, model?: string) => {
+  let name = vehicleName || [brand, model].filter(Boolean).join(' ');
+  if (!name || (name.includes('T') && name.includes('Z') && name.includes(':'))) {
+    name = [brand, model].filter(Boolean).join(' ');
+  }
+  return name || null;
+};
+
 // 2. Health check route
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'Xe Dien Thanh Tuoi Backend is running!' });
@@ -56,24 +65,36 @@ app.post('/api/customers', async (req: Request, res: Response) => {
       batteryNumber,
       imageUrl,
       formTimestamp,
+      installmentBank,
+      debtAmount,
+      email,
+      idCardNumber,
+      idCardIssueDate,
     } = req.body;
 
-    const fullVehicle = vehicleName || [brand, model].filter(Boolean).join(' ');
+    const fullVehicle = cleanVehicleName(vehicleName, brand, model);
+    const parsedPrice = price ? parseInt(String(price).replace(/[^0-9]/g, ''), 10) : null;
+    const parsedDebt = debtAmount ? parseInt(String(debtAmount).replace(/[^0-9]/g, ''), 10) : null;
 
     const newCustomer = await prisma.customer.create({
       data: {
         fullName,
         phone: phone ? String(phone) : null,
         address: address || null,
-        vehicleName: fullVehicle || null,
+        vehicleName: fullVehicle,
         color: color || null,
-        price: price ? parseInt(String(price), 10) : null,
+        price: isNaN(parsedPrice as number) ? null : parsedPrice,
         staffName: staffName || null,
         branchName: branchName || null,
         frameNumber: frameNumber || null,
         batteryNumber: batteryNumber || null,
         imageUrl: imageUrl || null,
         formTimestamp: formTimestamp || new Date().toLocaleDateString('vi-VN'),
+        installmentBank: installmentBank || null,
+        debtAmount: isNaN(parsedDebt as number) ? null : parsedDebt,
+        email: email || null,
+        idCardNumber: idCardNumber || null,
+        idCardIssueDate: idCardIssueDate || null,
       },
     });
 
@@ -107,9 +128,16 @@ app.put('/api/customers/:id', async (req: Request, res: Response) => {
       branchName,
       frameNumber,
       batteryNumber,
+      installmentBank,
+      debtAmount,
+      email,
+      idCardNumber,
+      idCardIssueDate,
     } = req.body;
 
-    const fullVehicle = vehicleName || [brand, model].filter(Boolean).join(' ');
+    const fullVehicle = cleanVehicleName(vehicleName, brand, model);
+    const parsedPrice = price ? parseInt(String(price).replace(/[^0-9]/g, ''), 10) : null;
+    const parsedDebt = debtAmount ? parseInt(String(debtAmount).replace(/[^0-9]/g, ''), 10) : null;
 
     const updatedCustomer = await prisma.customer.update({
       where: { id: customerId },
@@ -117,13 +145,18 @@ app.put('/api/customers/:id', async (req: Request, res: Response) => {
         fullName,
         phone: phone ? String(phone) : null,
         address: address || null,
-        vehicleName: fullVehicle || null,
+        vehicleName: fullVehicle,
         color: color || null,
-        price: price ? parseInt(String(price), 10) : null,
+        price: isNaN(parsedPrice as number) ? null : parsedPrice,
         staffName: staffName || null,
         branchName: branchName || null,
         frameNumber: frameNumber || null,
         batteryNumber: batteryNumber || null,
+        installmentBank: installmentBank || null,
+        debtAmount: isNaN(parsedDebt as number) ? null : parsedDebt,
+        email: email || null,
+        idCardNumber: idCardNumber || null,
+        idCardIssueDate: idCardIssueDate || null,
       },
     });
 
@@ -165,6 +198,7 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
       address,
       brand,
       model,
+      vehicleName,
       price,
       staffName,
       branchName,
@@ -172,21 +206,27 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
       color,
       frameNumber,
       batteryNumber,
+      installmentBank,
+      debtAmount,
+      email,
+      idCardNumber,
+      idCardIssueDate,
     } = req.body;
 
     if (!fullName) {
       return res.status(400).json({ success: false, message: 'FullName is required' });
     }
 
-    const fullVehicle = [brand, model].filter(Boolean).join(' ');
+    const fullVehicle = cleanVehicleName(vehicleName, brand, model);
     const parsedPrice = price ? parseInt(String(price).replace(/[^0-9]/g, ''), 10) : null;
+    const parsedDebt = debtAmount ? parseInt(String(debtAmount).replace(/[^0-9]/g, ''), 10) : null;
 
     const newCustomer = await prisma.customer.create({
       data: {
         fullName,
         phone: phone ? String(phone) : null,
         address: address || null,
-        vehicleName: fullVehicle || null,
+        vehicleName: fullVehicle,
         color: color || null,
         price: isNaN(parsedPrice as number) ? null : parsedPrice,
         staffName: staffName || null,
@@ -195,6 +235,11 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
         frameNumber: frameNumber || null,
         batteryNumber: batteryNumber || null,
         formTimestamp: timestamp || '',
+        installmentBank: installmentBank || null,
+        debtAmount: isNaN(parsedDebt as number) ? null : parsedDebt,
+        email: email || null,
+        idCardNumber: idCardNumber || null,
+        idCardIssueDate: idCardIssueDate || null,
       },
     });
 

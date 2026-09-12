@@ -83,8 +83,14 @@ export interface Customer {
   formTimestamp?: string;
   timestamp?: string;
   ngay_mua?: string;
-  created_at?: string;
   createdAt?: string;
+  
+  // ➕ Các thuộc tính mới
+  installmentBank?: string;
+  debtAmount?: number | string;
+  email?: string;
+  idCardNumber?: string;
+  idCardIssueDate?: string;
   [key: string]: any;
 }
 
@@ -111,7 +117,8 @@ export const extractVehicleInfo = (item: Customer) => {
     'id', 'fullname', 'ho_ten', 'phone', 'dien_thoai', 'address', 'dia_chi',
     'color', 'mau', 'price', 'gia_xe', 'staffname', 'nhan_vien', 'branchname',
     'chi_nhanh', 'framenumber', 'so_khung', 'batterynumber', 'so_pin', 'imageurl',
-    'formtimestamp', 'timestamp', 'ngay_mua', 'created_at', 'createdat', 'dấu thời gian'
+    'formtimestamp', 'timestamp', 'ngay_mua', 'created_at', 'createdat', 'dấu thời gian',
+    'installmentbank', 'debtamount', 'email', 'idcardnumber', 'idcardissuedate'
   ];
 
   const foundText: string[] = [];
@@ -212,11 +219,15 @@ const executePrintContract = (customer: Customer) => {
   const dienThoai = customer.phone || customer.dien_thoai || '';
   const diaChi = customer.address || customer.dia_chi || '';
   const email = customer.email || '';
+  const idCardNumber = customer.idCardNumber || '';
+  const idCardIssueDate = customer.idCardIssueDate || '';
+  const installmentBank = customer.installmentBank || '';
+  const debtAmountNum = Number(customer.debtAmount || 0);
+  const debtAmountStr = debtAmountNum > 0 ? debtAmountNum.toLocaleString('vi-VN') + ' VNĐ' : '';
+
   const modelXe = extractVehicleInfo(customer);
   const mauXe = customer.color || customer.mau || '';
   const soKhung = customer.frameNumber || customer.so_khung || '';
-
-
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -290,7 +301,7 @@ const executePrintContract = (customer: Customer) => {
       </style>
     </head>
     <body>
-      <!-- TRANG 1: CÂN ĐỐI FULL CẢ TRANG A4 -->
+      <!-- TRANG 1 -->
       <div class="page" style="justify-content: space-between;">
         <div>
           <!-- HEADER CÔNG TY & QUỐC HIỆU -->
@@ -333,13 +344,13 @@ const executePrintContract = (customer: Customer) => {
             <div class="info-row" style="margin-top: 10px;"><strong>II. Bên B ( Bên mua xe):</strong></div>
             <div class="info-row">Họ và tên: <strong>${hoTen || '...................................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Điện thoại: <strong>${dienThoai || '.........................'}</strong></div>
             <div class="info-row">Địa chỉ: <strong>${diaChi || '........................................................................................................................'}</strong></div>
-            <div class="info-row">CCCD số: ............................................ Ngày cấp: ......................... Nơi cấp: Cục Cảnh Sát.</div>
+            <div class="info-row">CCCD số: <strong>${idCardNumber || '............................................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Ngày cấp: <strong>${idCardIssueDate || '.........................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Nơi cấp: Cục Cảnh Sát.</div>
             <div class="info-row">Email: <strong>${email || '........................................................................................................................'}</strong></div>
             <div class="info-row">
               Tên Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Màu: <strong>${mauXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong>
             </div>
             <div class="info-row">
-              Ngân Hàng Vay: ............................ Số Tiền Vay: ............................ Khách Nợ: ............................
+              Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khách Nợ: <strong>${debtAmountStr || '............................'}</strong>
             </div>
             <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
@@ -354,7 +365,7 @@ const executePrintContract = (customer: Customer) => {
             <div style="margin: 10px 0 6px 0;">Sau khi bàn bạc và đi đến thống nhất, bên A đồng ý bán xe và bên B đồng ý mua xe với các điều khoản sau:</div>
           </div>
 
-          <!-- BẢNG MỤC I VÀ MỤC II - GIÃN NỘI DUNG ĐẸP MẮT -->
+          <!-- BẢNG ĐIỀU KHOẢN -->
           <table class="grid-table">
             <thead>
               <tr>
@@ -399,7 +410,7 @@ const executePrintContract = (customer: Customer) => {
         </div>
       </div>
 
-      <!-- TRANG 2: VINFAST BÊN TRÁI -->
+      <!-- TRANG 2 -->
       <div class="page page-break">
         <table class="grid-table" style="margin-top: 0;">
           <tbody>
@@ -737,6 +748,13 @@ export default function App() {
       branchName: record.branchName || record.chi_nhanh || 'Chi nhánh 1',
       frameNumber: record.frameNumber || record.so_khung || '',
       batteryNumber: record.batteryNumber || record.so_pin || '',
+      
+      // Gán dữ liệu thuộc tính mới vào Modal
+      installmentBank: record.installmentBank || '',
+      debtAmount: record.debtAmount ? Number(record.debtAmount) : 0,
+      email: record.email || '',
+      idCardNumber: record.idCardNumber || '',
+      idCardIssueDate: record.idCardIssueDate || '',
     });
     setIsModalOpen(true);
   };
@@ -744,13 +762,20 @@ export default function App() {
   const handleFormSubmit = async (values: any) => {
     setSubmitting(true);
 
-    // Chuẩn hóa và ép kiểu giá bán
     const rawPrice = values.price;
     let parsedPrice = 0;
     if (typeof rawPrice === 'number') {
       parsedPrice = Math.round(rawPrice);
     } else if (typeof rawPrice === 'string') {
       parsedPrice = parseInt(rawPrice.replace(/[^0-9]/g, ''), 10) || 0;
+    }
+
+    const rawDebt = values.debtAmount;
+    let parsedDebt = 0;
+    if (typeof rawDebt === 'number') {
+      parsedDebt = Math.round(rawDebt);
+    } else if (typeof rawDebt === 'string') {
+      parsedDebt = parseInt(rawDebt.replace(/[^0-9]/g, ''), 10) || 0;
     }
 
     const payload = {
@@ -766,7 +791,15 @@ export default function App() {
       staffName: values.staffName?.trim() || '',
       branchName: values.branchName || 'Chi nhánh 1',
       vehicleName: `${values.brand || ''} ${values.model || ''}`.trim(),
-      // Tương thích tên cột Tiếng Việt trên Backend
+      
+      // Thuộc tính mới
+      installmentBank: values.installmentBank?.trim() || '',
+      debtAmount: parsedDebt,
+      email: values.email?.trim() || '',
+      idCardNumber: values.idCardNumber?.trim() || '',
+      idCardIssueDate: values.idCardIssueDate?.trim() || '',
+
+      // Tương thích tên cột Tiếng Việt
       ho_ten: values.fullName?.trim() || '',
       dien_thoai: values.phone?.trim() || '',
       dia_chi: values.address?.trim() || '',
@@ -928,6 +961,9 @@ export default function App() {
           'Khách Hàng': item.fullName || item.ho_ten || '---',
           'Số Điện Thoại': item.phone || item.dien_thoai || '---',
           'Địa Chỉ': item.address || item.dia_chi || '---',
+          'Email': item.email || '---',
+          'CCCD': item.idCardNumber || '---',
+          'Ngày Cấp CCCD': item.idCardIssueDate || '---',
           'Tên Xe / Hãng': extractVehicleInfo(item),
           'Màu Sắc': item.color || item.mau || '---',
           'Số Khung': item.frameNumber || item.so_khung || '---',
@@ -936,6 +972,10 @@ export default function App() {
             ? Number(item.price).toLocaleString('vi-VN')
             : item.gia_xe
             ? Number(item.gia_xe).toLocaleString('vi-VN')
+            : '0',
+          'Ngân Hàng Góp': item.installmentBank || '---',
+          'Số Tiền Còn Nợ (VNĐ)': item.debtAmount
+            ? Number(item.debtAmount).toLocaleString('vi-VN')
             : '0',
           'Nhân Viên': item.staffName || item.nhan_vien || '---',
           'Chi Nhánh': item.branchName || item.chi_nhanh || '---',
@@ -949,12 +989,17 @@ export default function App() {
         { wch: 16 },
         { wch: 25 },
         { wch: 15 },
-        { wch: 40 },
+        { wch: 35 },
+        { wch: 25 },
+        { wch: 18 },
+        { wch: 15 },
         { wch: 25 },
         { wch: 15 },
         { wch: 20 },
         { wch: 20 },
         { wch: 18 },
+        { wch: 20 },
+        { wch: 20 },
         { wch: 20 },
         { wch: 18 },
       ];
@@ -983,6 +1028,9 @@ export default function App() {
     const batteryNumber = item.batteryNumber || item.so_pin || '';
     const staff = item.staffName || item.nhan_vien || '';
     const branch = item.branchName || item.chi_nhanh || '';
+    const bank = item.installmentBank || '';
+    const email = item.email || '';
+    const cccd = item.idCardNumber || '';
 
     return (
       name.toLowerCase().includes(searchLower) ||
@@ -993,7 +1041,10 @@ export default function App() {
       frameNumber.toLowerCase().includes(searchLower) ||
       batteryNumber.toLowerCase().includes(searchLower) ||
       staff.toLowerCase().includes(searchLower) ||
-      branch.toLowerCase().includes(searchLower)
+      branch.toLowerCase().includes(searchLower) ||
+      bank.toLowerCase().includes(searchLower) ||
+      email.toLowerCase().includes(searchLower) ||
+      cccd.toLowerCase().includes(searchLower)
     );
   });
 
@@ -1051,7 +1102,7 @@ export default function App() {
       dataIndex: 'address',
       key: 'address',
       render: (_: any, record: Customer) => <span style={{ fontSize: '13px', color: '#595959' }}>{record.address || record.dia_chi || '---'}</span>,
-      width: 250,
+      width: 220,
     },
     {
       title: 'TÊN XE / HÃNG',
@@ -1116,9 +1167,49 @@ export default function App() {
         }
         return <Text type="secondary">---</Text>;
       },
-      width: 140,
+      width: 130,
       align: 'right',
     },
+    
+    // ➕ Thêm cột Ngân hàng góp
+    {
+      title: 'NGÂN HÀNG GÓP',
+      dataIndex: 'installmentBank',
+      key: 'installmentBank',
+      render: (_: any, record: Customer) => {
+        const bank = record.installmentBank;
+        return bank ? (
+          <Tag color="purple" style={{ borderRadius: 4, fontWeight: 500, whiteSpace: 'nowrap' }}>
+            {bank}
+          </Tag>
+        ) : (
+          <Text type="secondary">---</Text>
+        );
+      },
+      width: 140,
+      align: 'center',
+    },
+
+    // ➕ Thêm cột Số tiền còn nợ
+    {
+      title: 'SỐ TIỀN CÒN NỢ',
+      dataIndex: 'debtAmount',
+      key: 'debtAmount',
+      render: (_: any, record: Customer) => {
+        const debt = Number(record.debtAmount);
+        if (!isNaN(debt) && debt > 0) {
+          return (
+            <span style={{ fontWeight: 600, color: '#cf1322', whiteSpace: 'nowrap' }}>
+              {debt.toLocaleString('vi-VN')} VNĐ
+            </span>
+          );
+        }
+        return <Text type="secondary">---</Text>;
+      },
+      width: 130,
+      align: 'right',
+    },
+
     {
       title: 'NHÂN VIÊN',
       dataIndex: 'staffName',
@@ -1299,7 +1390,7 @@ export default function App() {
         <div style={{ width: '100%', overflowX: 'hidden' }}>
           <div style={{ marginBottom: 16 }}>
             <Input
-              placeholder="Tìm theo tên khách, SĐT, địa chỉ, màu sắc, tên xe, Số Khung, Số Acquy hoặc chi nhánh..."
+              placeholder="Tìm theo tên khách, SĐT, địa chỉ, ngân hàng, CCCD, Email, màu sắc, tên xe..."
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
               value={searchText}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
@@ -1320,7 +1411,7 @@ export default function App() {
               showSizeChanger: false,
               simple: window.innerWidth < 768,
             }}
-            scroll={{ x: 1750 }}
+            scroll={{ x: 2000 }}
             size="small"
           />
         </div>
@@ -1609,7 +1700,7 @@ export default function App() {
         footer={null}
         destroyOnClose
         width="95%"
-        style={{ maxWidth: '600px' }}
+        style={{ maxWidth: '650px' }}
       >
         <Form form={form} layout="vertical" onFinish={handleFormSubmit} style={{ marginTop: 16 }}>
           <Form.Item name="fullName" label="Tên khách hàng" rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
@@ -1621,21 +1712,43 @@ export default function App() {
           <Form.Item name="address" label="Địa chỉ">
             <Input placeholder="Nhập địa chỉ..." />
           </Form.Item>
-          <Form.Item name="brand" label="Hãng xe">
-            <Input />
+
+          {/* ➕ Các trường mới bổ sung vào Form */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Form.Item name="idCardNumber" label="Căn cước công dân (CCCD)">
+              <Input placeholder="Nhập số CCCD..." />
+            </Form.Item>
+            <Form.Item name="idCardIssueDate" label="Ngày cấp CCCD">
+              <Input placeholder="Vd: 15/05/2022" />
+            </Form.Item>
+          </div>
+
+          <Form.Item name="email" label="Email">
+            <Input placeholder="Nhập email khách hàng..." />
           </Form.Item>
-          <Form.Item name="model" label="Model xe">
-            <Input />
-          </Form.Item>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Form.Item name="brand" label="Hãng xe">
+              <Input />
+            </Form.Item>
+            <Form.Item name="model" label="Model xe">
+              <Input />
+            </Form.Item>
+          </div>
+
           <Form.Item name="color" label="Màu xe">
             <Input placeholder="Nhập màu xe (vd: Xám bóng, Trắng đen...)" />
           </Form.Item>
-          <Form.Item name="frameNumber" label="Số Khung">
-            <Input placeholder="Nhập số khung..." />
-          </Form.Item>
-          <Form.Item name="batteryNumber" label="Số Acquy">
-            <Input placeholder="Nhập số acquy..." />
-          </Form.Item>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Form.Item name="frameNumber" label="Số Khung">
+              <Input placeholder="Nhập số khung..." />
+            </Form.Item>
+            <Form.Item name="batteryNumber" label="Số Acquy">
+              <Input placeholder="Nhập số acquy..." />
+            </Form.Item>
+          </div>
+
           <Form.Item name="price" label="Giá bán (VNĐ)">
             <InputNumber
               style={{ width: '100%' }}
@@ -1643,6 +1756,20 @@ export default function App() {
               parser={(val) => val?.replace(/\./g, '') as unknown as number}
             />
           </Form.Item>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Form.Item name="installmentBank" label="Ngân hàng góp">
+              <Input placeholder="Vd: FE Credit, HD Saison..." />
+            </Form.Item>
+            <Form.Item name="debtAmount" label="Số tiền còn nợ (VNĐ)">
+              <InputNumber
+                style={{ width: '100%' }}
+                formatter={(val) => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                parser={(val) => val?.replace(/\./g, '') as unknown as number}
+              />
+            </Form.Item>
+          </div>
+
           <Form.Item name="staffName" label="Nhân viên">
             <Input />
           </Form.Item>

@@ -24,14 +24,22 @@ model Customer {
   phone         String?
   address       String?
   vehicleName   String?
-  color         String?  // Cột Màu xe
+  color         String?
   price         Int?
   staffName     String?
   branchName    String?
-  imageUrl      String?
   frameNumber   String?
   batteryNumber String?
+  imageUrl      String?
   formTimestamp String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  // ➕ Thêm các trường mới
+  installmentBank String?  // Ngân hàng góp
+  debtAmount      Int?     // Số tiền còn nợ
+  email           String?  // Email
+  idCardNumber    String?  // Căn cước công dân
+  idCardIssueDate String?  // Ngày cấp CCCD
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
