@@ -362,11 +362,9 @@ const executePrintContract = (customer: Customer) => {
             </div>
             <div class="info-row">
               Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khoản Vay: <strong>${debtAmountStr || '............................'}</strong>
-              ${customerNote ? `
-                <div style="margin-top: 15px; font-size: 14px;">
-                <strong>Ghi chú:</strong> ${customerNote}
-            </div>
-                  ` : ''}
+            ${customerNote ? `
+            <p class="note-line">Ghi chú: ${customerNote}</p>
+            ` : ''}
             </div>
             <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
