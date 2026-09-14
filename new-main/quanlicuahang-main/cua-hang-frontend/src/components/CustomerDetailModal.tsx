@@ -23,6 +23,9 @@ export interface Customer {
   idCardIssueDate?: string | null;
   formTimestamp?: string | null;
   note?: string | null;
+  promotion?: string | null;            // ⚡ Trường mới
+  uudai_quatang?: string | null;        // ⚡ Fallback key
+  ['Ưu đãi/Quà tặng']?: string | null;  // ⚡ Fallback key từ Google Sheet
   imageUrl?: string | null;
 }
 
@@ -49,7 +52,14 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
   const actualPrepaid =
     customer.prepaidAmount ?? customer.prepaid_amount ?? customer.so_tien_tra_truoc ?? 0;
 
-  // 3. Hàm làm sạch Tên Xe (Loại bỏ Email / Tên Ngân hàng dính vào tên xe)
+  // 3. Tự động lấy Ưu đãi / Quà tặng
+  const actualPromotion =
+    customer.promotion ||
+    customer.uudai_quatang ||
+    customer['Ưu đãi/Quà tặng'] ||
+    null;
+
+  // 4. Hàm làm sạch Tên Xe (Loại bỏ Email / Tên Ngân hàng dính vào tên xe)
   const getCleanVehicleName = (rawName?: string | null) => {
     if (!rawName) return '---';
     let cleaned = rawName;
@@ -202,7 +212,15 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
 
           <hr className="my-3 border-gray-200" />
 
-          {/* Hàng 10: Ghi chú */}
+          {/* Hàng 10: Ưu đãi / Quà tặng */}
+          <div>
+            <span className="text-gray-500 block mb-1 font-medium">Ưu Đãi / Quà Tặng:</span>
+            <p className="italic text-amber-800 bg-amber-50 p-3 rounded-lg border border-amber-200 break-words font-medium">
+              {actualPromotion || 'Không có ưu đãi/quà tặng'}
+            </p>
+          </div>
+
+          {/* Hàng 11: Ghi chú */}
           <div>
             <span className="text-gray-500 block mb-1">Ghi Chú:</span>
             <p className="italic text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 break-words">

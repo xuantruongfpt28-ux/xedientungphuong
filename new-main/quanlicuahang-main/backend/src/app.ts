@@ -59,8 +59,9 @@ app.post('/api/customers', async (req: Request, res: Response) => {
       vehicleName,
       color,
       price,
-      prepaidAmount, // ⚡ Mới
-      note,          // ⚡ Mới
+      prepaidAmount,
+      note,
+      promotion,     // ⚡ Mới
       staffName,
       branchName,
       frameNumber,
@@ -87,8 +88,9 @@ app.post('/api/customers', async (req: Request, res: Response) => {
         vehicleName: fullVehicle,
         color: color || null,
         price: isNaN(parsedPrice as number) ? null : parsedPrice,
-        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid, // ⚡ Mới
-        note: note || null, // ⚡ Mới
+        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid,
+        note: note || null,
+        promotion: promotion || null, // ⚡ Mới
         staffName: staffName || null,
         branchName: branchName || null,
         frameNumber: frameNumber || null,
@@ -129,8 +131,9 @@ app.put('/api/customers/:id', async (req: Request, res: Response) => {
       vehicleName,
       color,
       price,
-      prepaidAmount, // ⚡ Mới
-      note,          // ⚡ Mới
+      prepaidAmount,
+      note,
+      promotion,     // ⚡ Mới
       staffName,
       branchName,
       frameNumber,
@@ -156,8 +159,9 @@ app.put('/api/customers/:id', async (req: Request, res: Response) => {
         vehicleName: fullVehicle,
         color: color || null,
         price: isNaN(parsedPrice as number) ? null : parsedPrice,
-        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid, // ⚡ Mới
-        note: note || null, // ⚡ Mới
+        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid,
+        note: note || null,
+        promotion: promotion || null, // ⚡ Mới
         staffName: staffName || null,
         branchName: branchName || null,
         frameNumber: frameNumber || null,
@@ -210,10 +214,12 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
       model,
       vehicleName,
       price,
-      prepaidAmount,    // ⚡ Mới từ Apps Script
-      so_tien_tra_truoc,// Fallback
-      note,             // ⚡ Mới từ Apps Script
-      ghi_chu,          // Fallback
+      prepaidAmount,
+      so_tien_tra_truoc,
+      note,
+      ghi_chu,
+      promotion,          // ⚡ Mới từ Apps Script
+      uudai_quatang,      // Fallback key
       staffName,
       branchName,
       imageUrl,
@@ -234,7 +240,6 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
     const fullVehicle = cleanVehicleName(vehicleName, brand, model);
     const parsedPrice = price ? parseInt(String(price).replace(/[^0-9]/g, ''), 10) : null;
     
-    // Đọc số tiền trả trước linh hoạt từ cả 2 dạng key
     const rawPrepaid = prepaidAmount !== undefined ? prepaidAmount : so_tien_tra_truoc;
     const parsedPrepaid = rawPrepaid ? parseInt(String(rawPrepaid).replace(/[^0-9]/g, ''), 10) : null;
     
@@ -248,8 +253,9 @@ app.post('/api/customers/webhook', async (req: Request, res: Response) => {
         vehicleName: fullVehicle,
         color: color || null,
         price: isNaN(parsedPrice as number) ? null : parsedPrice,
-        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid, // ⚡ Lưu vào Prisma/Supabase
-        note: (note || ghi_chu || null),                                       // ⚡ Lưu vào Prisma/Supabase
+        prepaidAmount: isNaN(parsedPrepaid as number) ? null : parsedPrepaid,
+        note: note || ghi_chu || null,
+        promotion: promotion || uudai_quatang || req.body['Ưu đãi/Quà tặng'] || null, // ⚡ Linh hoạt hỗ trợ nhiều key từ Apps Script
         staffName: staffName || null,
         branchName: branchName || null,
         imageUrl: imageUrl || null,

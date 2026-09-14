@@ -90,7 +90,8 @@ export interface Customer {
   debtAmount?: number | string;
   
   // ⚡ 2 TRƯỜNG MỚI BỔ SUNG:
-  prepaidAmount?: number | string; // Số tiền trả trước (so_tien_tra_truoc)
+  prepaidAmount?: number | string;
+  promotion?: string; // Số tiền trả trước (so_tien_tra_truoc)
   note?: string;                  // Ghi chú (ghi_chu)
 
   email?: string;
@@ -359,7 +360,7 @@ const executePrintContract = (customer: Customer) => {
               Tên Xe: <strong>${modelXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Màu: <strong>${mauXe}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Số VIN: <strong>${soKhung}</strong>
             </div>
             <div class="info-row">
-              Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khách Nợ: <strong>${debtAmountStr || '............................'}</strong>
+              Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khoản Vay: <strong>${debtAmountStr || '............................'}</strong>
             </div>
             <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
@@ -767,6 +768,7 @@ export default function App() {
       email: record.email || '',
       idCardNumber: record.idCardNumber || '',
       idCardIssueDate: record.idCardIssueDate || '',
+      promotion: record.promotion || record['Ưu đãi/Quà tặng'] || record['uudai_quatang'] || '',
     });
     setIsModalOpen(true);
   };
@@ -819,6 +821,8 @@ export default function App() {
       chi_nhanh: values.branchName || 'Chi nhánh 1',
       so_khung: values.frameNumber?.trim() || '',
       so_pin: values.batteryNumber?.trim() || '',
+      promotion: values.promotion?.trim() || '',
+      'Ưu đãi/Quà tặng': values.promotion?.trim() || '',
     };
 
     try {
@@ -948,6 +952,7 @@ export default function App() {
           'Số Tiền Còn Nợ (VNĐ)': item.debtAmount
             ? Number(item.debtAmount).toLocaleString('vi-VN')
             : '0',
+          'Ưu đãi / Quà tặng': item.promotion || item['Ưu đãi/Quà tặng'] || item.uudai_quatang || '---',
           'Ghi Chú': item.note || item.ghi_chu || '---',
           'Nhân Viên': item.staffName || item.nhan_vien || '---',
           'Chi Nhánh': item.branchName || item.chi_nhanh || '---',
@@ -1177,6 +1182,22 @@ export default function App() {
       width: 130,
       align: 'right',
     },
+    {
+      title: 'ƯU ĐÃI / QUÀ TẶNG',
+      dataIndex: 'promotion',
+      key: 'promotion',
+      render: (_: any, record: Customer) => {
+        const promoVal = record.promotion || record['Ưu đãi/Quà tặng'] || record['uudai_quatang'];
+        return promoVal ? (
+          <span style={{ color: '#d46b08', fontStyle: 'italic', fontSize: '13px' }}>
+            {promoVal}
+          </span>
+        ) : (
+          <Text type="secondary">---</Text>
+        );
+      },
+      width: 160,
+    },    
     // ⚡ CỘT 2: GHI CHÚ
     {
       title: 'GHI CHÚ',
@@ -1765,7 +1786,9 @@ export default function App() {
               />
             </Form.Item>
           </div>
-
+          <Form.Item name="promotion" label="Ưu đãi / Quà tặng">
+            <Input placeholder="Vd: Tặng mũ bảo hiểm, Áo mưa, Giảm 500k..." />
+          </Form.Item>
           {/* ⚡ Ô NHẬP GHI CHÚ */}
           <Form.Item name="note" label="Ghi chú">
             <Input.TextArea rows={2} placeholder="Nhập ghi chú đơn hàng..." />
