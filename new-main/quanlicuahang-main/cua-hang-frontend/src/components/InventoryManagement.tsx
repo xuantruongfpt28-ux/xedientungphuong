@@ -19,6 +19,7 @@ import {
   Upload,
   Popconfirm,
   Alert,
+  DatePicker,
 } from 'antd';
 import {
   SwapOutlined,
@@ -34,7 +35,7 @@ import {
   CheckSquareOutlined,
   SyncOutlined,
 } from '@ant-design/icons';
-
+import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 import { supabase } from '../supabase';
 import { logActivity } from '../utils/logger';
@@ -64,7 +65,7 @@ export interface VehicleStockItem {
   supplier?: string; // Nhà Cung Cấp
   branch: string;
   status: 'in_stock' | 'sold' | 'transferring';
-  imported_at?: string;
+  imported_at?: string; // Ngày Nhập Kho
   updated_at?: string;
 }
 
@@ -91,6 +92,7 @@ interface ExcelVehicleRow {
   battery_number?: string;
   supplier?: string;
   branch: string;
+  imported_at?: string;
   note?: string;
 }
 
@@ -475,6 +477,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleDownloadSampleExcel = () => {
     const sampleData = [
       {
+        'Ngày Nhập': dayjs().format('YYYY-MM-DD'),
         'Hãng': 'Yadea',
         'Số Loại': 'Xe máy điện',
         'Tên Xe': 'I8',
@@ -486,6 +489,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         'Ghi Chú': 'Lô xe mới nhập',
       },
       {
+        'Ngày Nhập': dayjs().format('YYYY-MM-DD'),
         'Hãng': 'Yadea',
         'Số Loại': 'Xe đạp điện',
         'Tên Xe': 'OVA',
@@ -500,6 +504,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
     const worksheet = XLSX.utils.json_to_sheet(sampleData);
     worksheet['!cols'] = [
+      { wch: 14 },
       { wch: 14 },
       { wch: 16 },
       { wch: 18 },
@@ -533,6 +538,9 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           .map((row: any) => {
             const rawBranch = String(row['Chi Nhánh'] || row['chi_nhanh'] || currentUser.branch).trim();
             const branchName = normalizeBranchName(rawBranch);
+            
+            const rawImportDate = row['Ngày Nhập'] || row['ngay_nhap'] || row['imported_at'];
+            const parsedDate = rawImportDate ? dayjs(rawImportDate).toISOString() : new Date().toISOString();
 
             return {
               brand: String(row['Hãng'] || row['Hãng Xe'] || row['hang_xe'] || '').trim(),
@@ -543,6 +551,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
               battery_number: String(row['Số Acquy - PIN'] || row['Số Acquy'] || row['So Pin'] || row['battery_number'] || '').trim(),
               supplier: String(row['Nhà Cung Cấp'] || row['nha_cung_cap'] || '').trim(),
               branch: branchName,
+              imported_at: parsedDate,
               note: String(row['Ghi Chú'] || row['ghi_chu'] || 'Nhập kho Excel').trim(),
             };
           })
@@ -615,6 +624,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
               battery_number: row.battery_number,
               supplier: row.supplier,
               branch: branchName,
+              imported_at: row.imported_at,
               status: 'in_stock',
               updated_at: new Date().toISOString(),
             })
@@ -630,6 +640,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
               battery_number: row.battery_number,
               supplier: row.supplier,
               branch: branchName,
+              imported_at: row.imported_at,
               status: 'in_stock',
             },
           ]);
@@ -701,8 +712,9 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
   const processImportVehicle = async (values: any) => {
     setSubmitting(true);
-    const { brand, model_type, model, color, frame_number, battery_number, supplier, branch, note } = values;
+    const { brand, model_type, model, color, frame_number, battery_number, supplier, branch, imported_at, note } = values;
     const targetBranch = normalizeBranchName(branch);
+    const formattedImportedAt = imported_at ? imported_at.toISOString() : new Date().toISOString();
 
     try {
       const { data: existing } = await supabase
@@ -722,6 +734,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             battery_number: (battery_number || '').trim(),
             supplier: (supplier || '').trim(),
             branch: targetBranch,
+            imported_at: formattedImportedAt,
             status: 'in_stock',
             updated_at: new Date().toISOString(),
           })
@@ -737,6 +750,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             battery_number: (battery_number || '').trim(),
             supplier: (supplier || '').trim(),
             branch: targetBranch,
+            imported_at: formattedImportedAt,
             status: 'in_stock',
           },
         ]);
@@ -977,7 +991,10 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       icon={<PlusOutlined />}
                       onClick={() => {
                         importForm.resetFields();
-                        importForm.setFieldsValue({ branch: normalizeBranchName(currentUser.branch) });
+                        importForm.setFieldsValue({
+                          branch: normalizeBranchName(currentUser.branch),
+                          imported_at: dayjs(),
+                        });
                         setIsImportModalOpen(true);
                       }}
                     >
@@ -1054,6 +1071,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                   size="middle"
                   columns={[
                     {
+                      title: 'NGÀY NHẬP',
+                      dataIndex: 'imported_at',
+                      key: 'imported_at',
+                      render: (d) => (d ? dayjs(d).format('DD/MM/YYYY') : '--/--/----'),
+                      width: 110,
+                    },
+                    {
                       title: 'SỐ KHUNG (VIN)',
                       dataIndex: 'frame_number',
                       key: 'frame_number',
@@ -1065,7 +1089,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       dataIndex: 'model_type',
                       key: 'model_type',
                       render: (val) => val ? <Text style={{ fontWeight: 500 }}>{val}</Text> : <Text type="secondary" italic>--</Text>,
-                      width: 130,
+                      width: 120,
                     },
                     {
                       title: 'HÃNG & TÊN XE',
@@ -1081,21 +1105,21 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       dataIndex: 'color',
                       key: 'color',
                       render: (color) => <Tag color="blue">{color}</Tag>,
-                      width: 120,
+                      width: 110,
                     },
                     {
                       title: 'SỐ ACQUY - PIN',
                       dataIndex: 'battery_number',
                       key: 'battery_number',
                       render: (bat) => bat ? <Text style={{ color: '#108ee9' }}>{bat}</Text> : <Text type="secondary" italic>--</Text>,
-                      width: 140,
+                      width: 130,
                     },
                     {
                       title: 'NHÀ CUNG CẤP',
                       dataIndex: 'supplier',
                       key: 'supplier',
                       render: (sup) => sup ? <Text>{sup}</Text> : <Text type="secondary" italic>--</Text>,
-                      width: 150,
+                      width: 140,
                     },
                     {
                       title: 'VỊ TRÍ KHO',
@@ -1105,7 +1129,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                         const branchName = normalizeBranchName(b);
                         return <Tag color={getBranchBadgeColor(branchName)}>{branchName}</Tag>;
                       },
-                      width: 130,
+                      width: 120,
                     },
                     {
                       title: 'TRẠNG THÁI',
@@ -1120,7 +1144,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                           <Tag color="warning">Luân Chuyển</Tag>
                         )
                       ),
-                      width: 120,
+                      width: 110,
                     },
                     {
                       title: 'THAO TÁC',
@@ -1147,7 +1171,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                           </Popconfirm>
                         </Space>
                       ),
-                      width: 160,
+                      width: 150,
                     },
                   ]}
                 />
@@ -1157,7 +1181,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         ]}
       />
 
-      {/* Modal Nhập xe thủ công - ĐÃ SẮP XẾP ĐÚNG THỨ TỰ YÊU CẦU */}
+      {/* Modal Nhập xe thủ công - ĐÃ THÊM Ô CHỌN NGÀY NHẬP */}
       <Modal
         title="Nhập Xe Mới Thủ Công"
         open={isImportModalOpen}
@@ -1168,6 +1192,11 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         cancelText="Hủy"
       >
         <Form form={importForm} layout="vertical" onFinish={handleImportSubmit}>
+          {/* Ô chọn ngày nhập */}
+          <Form.Item name="imported_at" label="Ngày Nhập Kho" rules={[{ required: true, message: 'Vui lòng chọn ngày nhập!' }]}>
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Chọn ngày nhập kho" />
+          </Form.Item>
+
           {/* 1. Hãng */}
           <Form.Item name="brand" label="Hãng" rules={[{ required: true, message: 'Nhập hãng xe!' }]}>
             <Input placeholder="Ví dụ: Yadea, Vinfast, Dkbike..." />
@@ -1266,7 +1295,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         confirmLoading={submitting}
         okText="Xác Nhận Nạp Kho"
         cancelText="Hủy"
-        width={950}
+        width={980}
       >
         <Table<ExcelVehicleRow>
           dataSource={excelPreviewData}
@@ -1274,6 +1303,12 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           pagination={{ pageSize: 5 }}
           size="small"
           columns={[
+            {
+              title: 'Ngày Nhập',
+              dataIndex: 'imported_at',
+              key: 'imported_at',
+              render: (d) => (d ? dayjs(d).format('DD/MM/YYYY') : '--/--/----'),
+            },
             { title: 'Hãng', dataIndex: 'brand', key: 'brand' },
             { title: 'Số Loại', dataIndex: 'model_type', key: 'model_type', render: (val) => val || '--' },
             { title: 'Tên Xe', dataIndex: 'model', key: 'model' },
