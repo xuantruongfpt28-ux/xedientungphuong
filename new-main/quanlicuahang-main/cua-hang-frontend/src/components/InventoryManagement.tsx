@@ -34,7 +34,7 @@ import {
   CheckSquareOutlined,
   SyncOutlined,
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
+
 import * as XLSX from 'xlsx';
 import { supabase } from '../supabase';
 import { logActivity } from '../utils/logger';
