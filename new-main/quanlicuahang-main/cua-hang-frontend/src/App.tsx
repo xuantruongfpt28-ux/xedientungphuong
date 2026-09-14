@@ -325,7 +325,7 @@ const executePrintContract = (customer: Customer) => {
                   <strong style="font-size: 11.5pt;">CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong><br />
                   <span style="font-size: 9.5pt; line-height: 1.25;">
                     <strong>CN Xe Điện Tổng Hợp:</strong><br />
-                    102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
+                    102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0866.97.98.41)<br />
                     <strong>CN2 Xe Điện Yadea và Vinfast:</strong><br />
                     41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
                   </span>
@@ -350,7 +350,7 @@ const executePrintContract = (customer: Customer) => {
             <div class="info-row"><strong>I. Bên A ( Bên bán xe): CÔNG TY TNHH TPMOTOR TÙNG PHƯỢNG EV</strong></div>
             <div class="info-row" style="font-size: 9.5pt; margin-left: 12px;">
               <strong>Địa Chỉ:</strong><br />
-              Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0888.67.98.41)<br />
+              Xe Điện Tổng Hợp: 102 Ấp Nội Ô, Xã Giồng Riềng, Tỉnh An Giang (0866.97.98.41)<br />
               Xe Điện Yadea và Vinfast: 41 Hùng Vương, Ấp 6, Xã Giồng Riềng, Tỉnh An Giang (0976.820.941)
             </div>
 
