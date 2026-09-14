@@ -55,12 +55,14 @@ export type BranchName = (typeof BRANCHES)[number];
 
 export interface VehicleStockItem {
   id?: number;
-  frame_number: string;
-  battery_number?: string;
-  branch: string;
   brand: string;
-  model: string;
+  model_type?: string;
+  model: string; // Tên Xe
   color: string;
+  frame_number: string;
+  battery_number?: string; // Số Acquy - PIN
+  supplier?: string; // Nhà Cung Cấp
+  branch: string;
   status: 'in_stock' | 'sold' | 'transferring';
   imported_at?: string;
   updated_at?: string;
@@ -81,12 +83,14 @@ interface InventoryLogItem {
 }
 
 interface ExcelVehicleRow {
-  branch: string;
   brand: string;
+  model_type?: string;
   model: string;
   color: string;
   frame_number: string;
   battery_number?: string;
+  supplier?: string;
+  branch: string;
   note?: string;
 }
 
@@ -471,27 +475,41 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleDownloadSampleExcel = () => {
     const sampleData = [
       {
-        'Chi Nhánh': 'Chi nhánh 1',
-        'Hãng Xe': 'Yadea',
-        'Model Xe': 'I8',
-        'Màu Sắc': 'Trắng Sữa',
+        'Hãng': 'Yadea',
+        'Số Loại': 'Xe máy điện',
+        'Tên Xe': 'I8',
+        'Màu Xe': 'Trắng Sữa',
         'Số Khung': 'RL9Y5DGMHTFEU1001',
-        'Số Acquy': '1008264-100926-001',
+        'Số Acquy - PIN': '60V26Ah-YADEA01',
+        'Nhà Cung Cấp': 'Công ty Yadea Việt Nam',
+        'Chi Nhánh': 'Chi nhánh 1',
         'Ghi Chú': 'Lô xe mới nhập',
       },
       {
-        'Chi Nhánh': 'Kho chợ',
-        'Hãng Xe': 'Yadea',
-        'Model Xe': 'OVA',
-        'Màu Sắc': 'Vàng Cam Đất',
+        'Hãng': 'Yadea',
+        'Số Loại': 'Xe đạp điện',
+        'Tên Xe': 'OVA',
+        'Màu Xe': 'Vàng Cam Đất',
         'Số Khung': 'RL9Y5DGMHTFEU1002',
-        'Số Acquy': '1008264-100926-002',
+        'Số Acquy - PIN': '48V12Ah-YADEA02',
+        'Nhà Cung Cấp': 'Công ty Yadea Việt Nam',
+        'Chi Nhánh': 'Kho chợ',
         'Ghi Chú': 'Lô xe mới nhập',
       },
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(sampleData);
-    worksheet['!cols'] = [{ wch: 15 }, { wch: 14 }, { wch: 18 }, { wch: 15 }, { wch: 24 }, { wch: 24 }, { wch: 25 }];
+    worksheet['!cols'] = [
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 24 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 15 },
+      { wch: 20 },
+    ];
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'MauNhapXeSoKhung');
     XLSX.writeFile(workbook, 'Mau_Nhap_Xe_Theo_So_Khung.xlsx');
@@ -517,23 +535,24 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
             const branchName = normalizeBranchName(rawBranch);
 
             return {
-              branch: branchName,
-              brand: String(row['Hãng Xe'] || row['hang_xe'] || row['Hãng'] || '').trim(),
-              model: String(row['Model Xe'] || row['model_xe'] || row['Model'] || row['Tên Xe'] || '').trim(),
-              color: String(row['Màu Sắc'] || row['mau_sac'] || row['Màu'] || 'Tiêu chuẩn').trim(),
+              brand: String(row['Hãng'] || row['Hãng Xe'] || row['hang_xe'] || '').trim(),
+              model_type: String(row['Số Loại'] || row['so_loai'] || row['Loại Xe'] || row['loai_xe'] || '').trim(),
+              model: String(row['Tên Xe'] || row['Model Xe'] || row['model_xe'] || row['Model'] || '').trim(),
+              color: String(row['Màu Xe'] || row['Màu Sắc'] || row['mau_sac'] || row['Màu'] || 'Tiêu chuẩn').trim(),
               frame_number: String(row['Số Khung'] || row['so_khung'] || row['SK'] || '').trim(),
-              battery_number: String(row['Số Acquy'] || row['Số Pin'] || row['so_pin'] || row['so_acquy'] || '').trim(),
+              battery_number: String(row['Số Acquy - PIN'] || row['Số Acquy'] || row['So Pin'] || row['battery_number'] || '').trim(),
+              supplier: String(row['Nhà Cung Cấp'] || row['nha_cung_cap'] || '').trim(),
+              branch: branchName,
               note: String(row['Ghi Chú'] || row['ghi_chu'] || 'Nhập kho Excel').trim(),
             };
           })
           .filter((item) => item.frame_number && item.brand && item.model);
 
         if (formattedRows.length === 0) {
-          message.error('Không tìm thấy cột Số Khung, Hãng Xe, hoặc Model hợp lệ!');
+          message.error('Không tìm thấy cột Số Khung, Hãng Xe, hoặc Tên Xe hợp lệ!');
           return;
         }
 
-        // CẢNH BÁO TRÙNG SỐ KHUNG TRONG FILE EXCEL VỚI DANH SÁCH KHO HIỆN TẠI
         const duplicateFramesInDb = formattedRows.filter((row) =>
           vehicleList.some((item) => cleanFrameStr(item.frame_number) === cleanFrameStr(row.frame_number))
         );
@@ -589,11 +608,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           await supabase
             .from('Inventory')
             .update({
-              branch: branchName,
               brand: row.brand,
+              model_type: row.model_type,
               model: row.model,
               color: row.color,
               battery_number: row.battery_number,
+              supplier: row.supplier,
+              branch: branchName,
               status: 'in_stock',
               updated_at: new Date().toISOString(),
             })
@@ -601,12 +622,14 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         } else {
           await supabase.from('Inventory').insert([
             {
-              frame_number: row.frame_number,
-              battery_number: row.battery_number,
-              branch: branchName,
               brand: row.brand,
+              model_type: row.model_type,
               model: row.model,
               color: row.color,
+              frame_number: row.frame_number,
+              battery_number: row.battery_number,
+              supplier: row.supplier,
+              branch: branchName,
               status: 'in_stock',
             },
           ]);
@@ -648,7 +671,6 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
   const handleImportSubmit = async (values: any) => {
     const cleanInputVin = cleanFrameStr(values.frame_number);
 
-    // CẢNH BÁO TRÙNG SỐ KHUNG KHI NHẬP THỦ CÔNG
     const existingInState = vehicleList.find(
       (item) => cleanFrameStr(item.frame_number) === cleanInputVin
     );
@@ -679,7 +701,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
 
   const processImportVehicle = async (values: any) => {
     setSubmitting(true);
-    const { branch, brand, model, color, frame_number, battery_number, note } = values;
+    const { brand, model_type, model, color, frame_number, battery_number, supplier, branch, note } = values;
     const targetBranch = normalizeBranchName(branch);
 
     try {
@@ -693,11 +715,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         await supabase
           .from('Inventory')
           .update({
-            branch: targetBranch,
             brand: brand.trim(),
+            model_type: (model_type || '').trim(),
             model: model.trim(),
             color: color.trim(),
             battery_number: (battery_number || '').trim(),
+            supplier: (supplier || '').trim(),
+            branch: targetBranch,
             status: 'in_stock',
             updated_at: new Date().toISOString(),
           })
@@ -705,12 +729,14 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
       } else {
         await supabase.from('Inventory').insert([
           {
-            frame_number: frame_number.trim(),
-            battery_number: (battery_number || '').trim(),
-            branch: targetBranch,
             brand: brand.trim(),
+            model_type: (model_type || '').trim(),
             model: model.trim(),
             color: color.trim(),
+            frame_number: frame_number.trim(),
+            battery_number: (battery_number || '').trim(),
+            supplier: (supplier || '').trim(),
+            branch: targetBranch,
             status: 'in_stock',
           },
         ]);
@@ -819,7 +845,9 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
       const search = searchText.toLowerCase();
       const matchSearch =
         item.frame_number.toLowerCase().includes(search) ||
+        (item.model_type && item.model_type.toLowerCase().includes(search)) ||
         (item.battery_number && item.battery_number.toLowerCase().includes(search)) ||
+        (item.supplier && item.supplier.toLowerCase().includes(search)) ||
         item.brand.toLowerCase().includes(search) ||
         item.model.toLowerCase().includes(search) ||
         item.color.toLowerCase().includes(search) ||
@@ -912,7 +940,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                     />
 
                     <Input
-                      placeholder="Tìm số khung, số pin, hãng, model..."
+                      placeholder="Tìm số khung, số loại, nhà cung cấp..."
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       style={{ width: 240 }}
@@ -1033,14 +1061,14 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       width: 170,
                     },
                     {
-                      title: 'SỐ ACQUY / PIN',
-                      dataIndex: 'battery_number',
-                      key: 'battery_number',
-                      render: (pin) => pin ? <Text type="secondary">{pin}</Text> : <Text type="secondary" italic>--</Text>,
-                      width: 160,
+                      title: 'SỐ LOẠI',
+                      dataIndex: 'model_type',
+                      key: 'model_type',
+                      render: (val) => val ? <Text style={{ fontWeight: 500 }}>{val}</Text> : <Text type="secondary" italic>--</Text>,
+                      width: 130,
                     },
                     {
-                      title: 'HÃNG & MODEL XE',
+                      title: 'HÃNG & TÊN XE',
                       key: 'model',
                       render: (_, record) => (
                         <Space direction="vertical" size={0}>
@@ -1049,11 +1077,25 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                       ),
                     },
                     {
-                      title: 'MÀU SẮC',
+                      title: 'MÀU XE',
                       dataIndex: 'color',
                       key: 'color',
                       render: (color) => <Tag color="blue">{color}</Tag>,
-                      width: 130,
+                      width: 120,
+                    },
+                    {
+                      title: 'SỐ ACQUY - PIN',
+                      dataIndex: 'battery_number',
+                      key: 'battery_number',
+                      render: (bat) => bat ? <Text style={{ color: '#108ee9' }}>{bat}</Text> : <Text type="secondary" italic>--</Text>,
+                      width: 140,
+                    },
+                    {
+                      title: 'NHÀ CUNG CẤP',
+                      dataIndex: 'supplier',
+                      key: 'supplier',
+                      render: (sup) => sup ? <Text>{sup}</Text> : <Text type="secondary" italic>--</Text>,
+                      width: 150,
                     },
                     {
                       title: 'VỊ TRÍ KHO',
@@ -1063,7 +1105,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                         const branchName = normalizeBranchName(b);
                         return <Tag color={getBranchBadgeColor(branchName)}>{branchName}</Tag>;
                       },
-                      width: 150,
+                      width: 130,
                     },
                     {
                       title: 'TRẠNG THÁI',
@@ -1078,14 +1120,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                           <Tag color="warning">Luân Chuyển</Tag>
                         )
                       ),
-                      width: 130,
-                    },
-                    {
-                      title: 'NGÀY NHẬP',
-                      dataIndex: 'imported_at',
-                      key: 'imported_at',
-                      render: (date) => date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '--',
-                      width: 150,
+                      width: 120,
                     },
                     {
                       title: 'THAO TÁC',
@@ -1112,7 +1147,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                           </Popconfirm>
                         </Space>
                       ),
-                      width: 170,
+                      width: 160,
                     },
                   ]}
                 />
@@ -1122,7 +1157,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         ]}
       />
 
-      {/* Modal Nhập xe thủ công */}
+      {/* Modal Nhập xe thủ công - ĐÃ SẮP XẾP ĐÚNG THỨ TỰ YÊU CẦU */}
       <Modal
         title="Nhập Xe Mới Thủ Công"
         open={isImportModalOpen}
@@ -1133,24 +1168,46 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         cancelText="Hủy"
       >
         <Form form={importForm} layout="vertical" onFinish={handleImportSubmit}>
+          {/* 1. Hãng */}
+          <Form.Item name="brand" label="Hãng" rules={[{ required: true, message: 'Nhập hãng xe!' }]}>
+            <Input placeholder="Ví dụ: Yadea, Vinfast, Dkbike..." />
+          </Form.Item>
+
+          {/* 2. Số Loại */}
+          <Form.Item name="model_type" label="Số Loại">
+            <Input placeholder="Ví dụ: Xe máy điện, Xe đạp điện..." />
+          </Form.Item>
+
+          {/* 3. Tên Xe */}
+          <Form.Item name="model" label="Tên Xe" rules={[{ required: true, message: 'Nhập tên xe / model!' }]}>
+            <Input placeholder="Ví dụ: I8, Feliz, Xzone..." />
+          </Form.Item>
+
+          {/* 4. Màu Xe */}
+          <Form.Item name="color" label="Màu Xe" rules={[{ required: true, message: 'Nhập màu xe!' }]}>
+            <Input placeholder="Ví dụ: Trắng, Đỏ, Xám bóng..." />
+          </Form.Item>
+
+          {/* 5. Số Khung */}
+          <Form.Item name="frame_number" label="Số Khung" rules={[{ required: true, message: 'Nhập số khung!' }]}>
+            <Input placeholder="Nhập chính xác số khung xe..." />
+          </Form.Item>
+
+          {/* 6. Số Acquy - PIN */}
+          <Form.Item name="battery_number" label="Số Acquy - PIN">
+            <Input placeholder="Ví dụ: 60V26Ah, Pin Lithium 48V..." />
+          </Form.Item>
+
+          {/* 7. Nhà Cung Cấp */}
+          <Form.Item name="supplier" label="Nhà Cung Cấp">
+            <Input placeholder="Ví dụ: Công ty Yadea Việt Nam..." />
+          </Form.Item>
+
+          {/* Cột Vị trí kho & Ghi chú */}
           <Form.Item name="branch" label="Vị Trí Kho / Chi Nhánh" rules={[{ required: true, message: 'Vui lòng chọn kho!' }]}>
             <Select options={branchOptions} />
           </Form.Item>
-          <Form.Item name="brand" label="Hãng Xe" rules={[{ required: true, message: 'Nhập hãng xe!' }]}>
-            <Input placeholder="Ví dụ: Yadea, Vinfast, Dkbike..." />
-          </Form.Item>
-          <Form.Item name="model" label="Model Xe" rules={[{ required: true, message: 'Nhập model xe!' }]}>
-            <Input placeholder="Ví dụ: I8, Feliz, Xzone..." />
-          </Form.Item>
-          <Form.Item name="color" label="Màu Sắc" rules={[{ required: true, message: 'Nhập màu sắc!' }]}>
-            <Input placeholder="Ví dụ: Trắng, Đỏ, Xám bóng..." />
-          </Form.Item>
-          <Form.Item name="frame_number" label="Số Khung (VIN)" rules={[{ required: true, message: 'Nhập số khung!' }]}>
-            <Input placeholder="Nhập chính xác số khung xe..." />
-          </Form.Item>
-          <Form.Item name="battery_number" label="Số Acquy / Pin">
-            <Input placeholder="Nhập số seri pin/acquy (nếu có)..." />
-          </Form.Item>
+
           <Form.Item name="note" label="Ghi Chú">
             <Input.TextArea rows={2} placeholder="Ghi chú bổ sung..." />
           </Form.Item>
@@ -1209,7 +1266,7 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
         confirmLoading={submitting}
         okText="Xác Nhận Nạp Kho"
         cancelText="Hủy"
-        width={900}
+        width={950}
       >
         <Table<ExcelVehicleRow>
           dataSource={excelPreviewData}
@@ -1217,11 +1274,13 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
           pagination={{ pageSize: 5 }}
           size="small"
           columns={[
-            { title: 'Số Khung', dataIndex: 'frame_number', key: 'frame_number' },
-            { title: 'Số Acquy / Pin', dataIndex: 'battery_number', key: 'battery_number' },
             { title: 'Hãng', dataIndex: 'brand', key: 'brand' },
-            { title: 'Model', dataIndex: 'model', key: 'model' },
-            { title: 'Màu', dataIndex: 'color', key: 'color' },
+            { title: 'Số Loại', dataIndex: 'model_type', key: 'model_type', render: (val) => val || '--' },
+            { title: 'Tên Xe', dataIndex: 'model', key: 'model' },
+            { title: 'Màu Xe', dataIndex: 'color', key: 'color' },
+            { title: 'Số Khung', dataIndex: 'frame_number', key: 'frame_number' },
+            { title: 'Số Acquy - PIN', dataIndex: 'battery_number', key: 'battery_number', render: (val) => val || '--' },
+            { title: 'Nhà Cung Cấp', dataIndex: 'supplier', key: 'supplier', render: (val) => val || '--' },
             { 
               title: 'Vị Trí Kho', 
               dataIndex: 'branch', 
@@ -1231,7 +1290,6 @@ export const InventoryManagement = ({ currentUser, customers = [] }: InventoryMa
                 return <Tag color={getBranchBadgeColor(branchName)}>{branchName}</Tag>;
               } 
             },
-            { title: 'Ghi Chú', dataIndex: 'note', key: 'note' },
           ]}
         />
       </Modal>
