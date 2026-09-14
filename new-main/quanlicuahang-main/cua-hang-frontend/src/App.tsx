@@ -238,6 +238,7 @@ const executePrintContract = (customer: Customer) => {
   const modelXe = extractVehicleInfo(customer);
   const mauXe = customer.color || customer.mau || '';
   const soKhung = customer.frameNumber || customer.so_khung || '';
+  const customerNote = customer.note ? customer.note.trim() : '';
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -361,6 +362,11 @@ const executePrintContract = (customer: Customer) => {
             </div>
             <div class="info-row">
               Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khoản Vay: <strong>${debtAmountStr || '............................'}</strong>
+              ${customerNote ? `
+                <div style="margin-top: 15px; font-size: 14px;">
+                <strong>Ghi chú:</strong> ${customerNote}
+            </div>
+                  ` : ''}
             </div>
             <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
