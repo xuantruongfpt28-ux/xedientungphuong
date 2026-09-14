@@ -262,6 +262,8 @@ const executePrintContract = (customer: Customer) => {
         html, body { 
           margin: 0; 
           padding: 0; 
+          font-size: 11px; /* Giảm cỡ chữ chung xuống 12px */
+          line-height: 1.15;
           background: #fff; 
           font-family: "Times New Roman", Times, serif; 
           color: #000; 
@@ -270,7 +272,7 @@ const executePrintContract = (customer: Customer) => {
         .page {
           width: 210mm;
           height: 297mm;
-          padding: 12mm 15mm 10mm 15mm;
+          padding: 8mm 12mm 8mm 12mm;
           position: relative;
           overflow: hidden;
           box-sizing: border-box;
@@ -304,7 +306,7 @@ const executePrintContract = (customer: Customer) => {
         }
 
         .info-row { 
-          margin-bottom: 7px; 
+          margin-bottom: 3px; 
         }
 
         ul.note-list { margin: 4px 0; padding-left: 16px; font-size: 10pt; line-height: 1.25; }
@@ -363,8 +365,7 @@ const executePrintContract = (customer: Customer) => {
             <div class="info-row">
               Ngân Hàng Vay: <strong>${installmentBank || '............................'}</strong> &nbsp;&nbsp;&nbsp;&nbsp; Khoản Vay: <strong>${debtAmountStr || '............................'}</strong>
             ${customerNote ? `
-            <p class="note-line">Ghi chú: ${customerNote}</p>
-            ` : ''}
+            <p class="note-line">Ghi chú: ${customerNote}</p>`:''}
             </div>
             <div class="info-row italic">
               (Viết bằng chữ: ....................................................................)
