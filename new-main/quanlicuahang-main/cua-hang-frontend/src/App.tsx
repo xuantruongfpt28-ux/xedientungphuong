@@ -973,7 +973,7 @@ export default function App() {
   };
 
   const filteredCustomers = customers.filter((item) => {
-    const searchLower = searchText.toLowerCase();
+    const searchLower = searchText.toLowerCase().trim();
     const fullVehicleName = extractVehicleInfo(item);
     const name = item.fullName || item.ho_ten || '';
     const phone = item.phone || item.dien_thoai || '';
@@ -986,6 +986,18 @@ export default function App() {
     const bank = item.installmentBank || '';
     const noteStr = item.note || item.ghi_chu || '';
 
+    // ⚡ Lấy chuỗi thời gian mua từ các biến có thể có
+    const rawDate = item.formTimestamp || item.timestamp || item.createdAt || item.date || '';
+    
+    // Đảm bảo định dạng DD/MM/YYYY để hỗ trợ tìm kiếm dạng "14/09/2026" hoặc "14/09"
+    let formattedDate = rawDate;
+    if (rawDate && rawDate.includes('-')) {
+      const parts = rawDate.split('T')[0].split('-'); // Lấy phần YYYY-MM-DD
+      if (parts.length === 3) {
+        formattedDate = `${parts[2]}/${parts[1]}/${parts[0]} ${rawDate}`; // Ghép thêm DD/MM/YYYY
+      }
+    }
+
     return (
       name.toLowerCase().includes(searchLower) ||
       phone.includes(searchLower) ||
@@ -997,7 +1009,9 @@ export default function App() {
       staff.toLowerCase().includes(searchLower) ||
       branch.toLowerCase().includes(searchLower) ||
       bank.toLowerCase().includes(searchLower) ||
-      noteStr.toLowerCase().includes(searchLower)
+      noteStr.toLowerCase().includes(searchLower) ||
+      // ⚡ Bổ sung tìm kiếm theo Thời gian mua
+      formattedDate.toLowerCase().includes(searchLower)
     );
   });
 
