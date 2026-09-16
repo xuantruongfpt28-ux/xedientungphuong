@@ -705,6 +705,7 @@ export default function App() {
     return [
       { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
       { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+      { label: 'Khách sỉ', value: 'Khách sỉ' },
     ];
   }, []);
 
@@ -1821,6 +1822,7 @@ export default function App() {
               options={[
                 { label: 'Chi nhánh 1', value: 'Chi nhánh 1' },
                 { label: 'Chi nhánh 2', value: 'Chi nhánh 2' },
+                { label: 'Khách sỉ', value: 'Khách sỉ' },
               ]}
             />
           </Form.Item>
